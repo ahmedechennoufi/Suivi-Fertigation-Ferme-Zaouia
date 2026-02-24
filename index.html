@@ -57,6 +57,20 @@ const stBdr={clean:"#E5E7EB",faible:"#FDE047",moyen:"#FB923C",grave:"#EF4444",re
 function ld(k,f){try{const d=localStorage.getItem("ab_"+k);return d?JSON.parse(d):f}catch{return f}}
 function sv(k,d){try{localStorage.setItem("ab_"+k,JSON.stringify(d))}catch(e){console.error("Storage full:",e);if(k==="observations"){const trimmed=d.map(o=>({...o,photos:(o.photos||[]).slice(0,2)}));try{localStorage.setItem("ab_"+k,JSON.stringify(trimmed))}catch{localStorage.setItem("ab_"+k,JSON.stringify(d.map(o=>({...o,photos:[]}))))}}}}
 (function(){const old=ld("records",[]);if(old.length>0&&ld("observations",null)===null){const obs=[],trt=[];old.forEach(r=>{const oid=gid();obs.push({id:oid,sk:r.sk,pid:r.pid,dis:r.dis,sev:r.sev,date:r.tdate||r.at,obsText:r.obs||"",zone:"",photos:[],res:r.res||false,resAt:r.resAt||null,by:r.by||"user",at:r.at});if(r.prod&&r.dose)trt.push({id:gid(),sk:r.sk,pid:r.pid,obsId:oid,prod:r.prod,dose:r.dose,tdate:r.tdate||r.at,dar:"",darEnd:"",notes:"",by:r.by||"user",at:r.at})});sv("observations",obs);sv("treatments",trt)}})();
+function exportTrtExcel(treatments,observations){
+  const BOM="\uFEFF";
+  const hdr=["Date","Section","Parcelle","Produit","Dose","DAR (jours)","Fin DAR","Statut DAR","Maladie liée","Gravité","Zone touchée","Notes","Enregistré le"];
+  const rows=treatments.sort((a,b)=>new Date(b.tdate)-new Date(a.tdate)).map(t=>{
+    const sec=SECTIONS[t.sk];const lo=observations.find(o=>o.id===t.obsId);
+    const da=t.darEnd&&new Date(t.darEnd)>new Date();const dd=da?Math.ceil((new Date(t.darEnd)-new Date())/864e5):0;
+    return[fD(t.tdate),sec?sec.name+" ("+sec.fullName+")":"",t.pid,t.prod,t.dose,t.dar||"",t.darEnd?fD(t.darEnd):"",da?"En cours ("+dd+"j)":t.dar?"Terminé":"N/A",lo?lo.dis:"Préventif",lo?lo.sev:"",lo&&lo.zone?lo.zone+"%":"",t.notes||"",fDT(t.at)]
+  });
+  const esc=v=>{const s=String(v||"");return s.includes(",")||s.includes('"')||s.includes("\n")?'"'+s.replace(/"/g,'""')+'"':s};
+  const csv=BOM+[hdr.map(esc).join(","),...rows.map(r=>r.map(esc).join(","))].join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="traitements-agro-berry-"+new Date().toISOString().split("T")[0]+".csv";a.click();
+}
 async function ghSync(c,data){const ct=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";let sha=null;try{const e=await fetch(u,{headers:{Authorization:"token "+c.token}});if(e.ok)sha=(await e.json()).sha}catch{}const b={message:"Sync phyto - "+new Date().toLocaleString("fr-FR"),content:ct};if(sha)b.sha=sha;return fetch(u,{method:"PUT",headers:{Authorization:"token "+c.token,"Content-Type":"application/json"},body:JSON.stringify(b)})}
 async function ghRestore(c){const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";const r=await fetch(u,{headers:{Authorization:"token "+c.token}});if(r.ok){const f=await r.json();return JSON.parse(decodeURIComponent(escape(atob(f.content))))}return null}
 
@@ -230,11 +244,15 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
 
     // ===== TRAITEMENT TAB =====
     dashTab==="trt"&&React.createElement("div",{style:{animation:"fadeIn 0.3s"}},
+
+      // Export Excel button
+      React.createElement("button",{onClick:()=>exportTrtExcel(treatments,observations),style:{width:"100%",padding:12,borderRadius:14,border:"none",background:"linear-gradient(135deg,#10B981,#059669)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"center",gap:8,boxShadow:"0 2px 8px rgba(16,185,129,0.3)"}},"📥 Exporter historique Excel"),
+
       pendingDAR.length>0&&React.createElement("div",{style:{background:dark?"#1A1028":"#F5F3FF",border:"1px solid "+(dark?"#2D1F5E":"#DDD6FE"),borderRadius:16,padding:14,marginBottom:12}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#7C3AED",marginBottom:8}},"⏳ "+pendingDAR.length+" DAR actif"+(pendingDAR.length>1?"s":"")),
         pendingDAR.map(t=>{const sec=SECTIONS[t.sk];const dj=Math.ceil((new Date(t.darEnd)-new Date())/864e5);return React.createElement("div",{key:t.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",marginBottom:4,background:cbg,borderRadius:10,border:"1px solid "+bd}},
           React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+t.pid),React.createElement("span",{style:{fontSize:11,color:stx,marginLeft:6}},t.prod)),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"blink",style:{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},dj+"j"),React.createElement("button",{onClick:()=>{delTrt(t.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️")))})),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"blink",style:{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},dj+"j"),React.createElement("button",{onClick:()=>{delTrt(t.id)},style:{background:"#FEF2F2",borderRadius:8,border:"1px solid #FECACA",fontSize:12,cursor:"pointer"}},"🗑️")))})),
 
       React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},todayTrt.length>0?"💊 Aujourd'hui ("+todayTrt.length+")":"💊 Cette semaine"+(recentTrt.length?" ("+recentTrt.length+")":"")),
       recentTrtList.length===0?
@@ -244,17 +262,40 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
           return React.createElement("div",{key:r.id,style:{background:cbg,border:"1px solid "+bd,borderLeft:"4px solid "+(da?"#F97316":"#8B5CF6"),borderRadius:16,padding:14,marginBottom:2}},
             React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}},
               React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),da&&React.createElement("span",{className:"blink",style:{marginLeft:6,padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},"⏳ "+dd+"j")),
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>{delTrt(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️"))),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>{delTrt(r.id)},style:{background:"#FEF2F2",borderRadius:8,border:"1px solid #FECACA",fontSize:12,cursor:"pointer"}},"🗑️"))),
             React.createElement("div",{style:{fontSize:14,fontWeight:700,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),
             React.createElement("div",{style:{fontSize:12,color:stx}},"📏 "+r.dose+" • 📅 "+fD(r.tdate)),
             r.dar&&React.createElement("div",{style:{fontSize:11,color:"#EA580C",marginTop:2}},"⏳ DAR "+r.dar+"j → fin "+fD(r.darEnd)),
             lo&&React.createElement("div",{style:{marginTop:6,padding:"6px 8px",background:dark?"#1C1917":"#FEF9C3",borderRadius:8,fontSize:10,fontWeight:600,color:"#92400E"}},"🔗 "+lo.dis+" ("+lo.sev+")"))})),
 
-      secSummary.filter(s=>s.tc>0).length>0&&React.createElement("div",{style:{marginTop:8}},
+      // HISTORIQUE COMPLET
+      treatments.length>0&&React.createElement("div",{style:{marginTop:16}},
+        React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:10}},"📜 Historique complet ("+treatments.length+")"),
+        React.createElement("div",{style:{background:cbg,borderRadius:16,border:"1px solid "+bd,overflow:"hidden"}},
+          React.createElement("div",{style:{overflowX:"auto"}},
+            React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:11}},
+              React.createElement("thead",null,
+                React.createElement("tr",{style:{background:dark?"#1E293B":"#F1F5F9"}},
+                  ["Date","Section","Parc.","Produit","Dose","DAR","Maladie",""].map((h,i)=>
+                    React.createElement("th",{key:i,style:{padding:"10px 8px",textAlign:"left",fontWeight:700,color:stx,fontSize:10,borderBottom:"2px solid "+bd,whiteSpace:"nowrap"}},h)))),
+              React.createElement("tbody",null,
+                treatments.sort((a,b)=>new Date(b.tdate)-new Date(a.tdate)).map((r,i)=>{
+                  const sec=SECTIONS[r.sk];const lo=observations.find(o=>o.id===r.obsId);const da=r.darEnd&&new Date(r.darEnd)>new Date();const dd=da?Math.ceil((new Date(r.darEnd)-new Date())/864e5):0;
+                  return React.createElement("tr",{key:r.id,style:{borderBottom:"1px solid "+bd,background:i%2===0?"transparent":(dark?"#1E293B11":"#F8FAFC")}},
+                    React.createElement("td",{style:{padding:"8px",whiteSpace:"nowrap",fontWeight:500}},fD(r.tdate)),
+                    React.createElement("td",{style:{padding:"8px"}},React.createElement("span",{style:{fontWeight:700,color:sec?.color,fontSize:10}},sec?.name)),
+                    React.createElement("td",{style:{padding:"8px",fontWeight:600}},r.pid),
+                    React.createElement("td",{style:{padding:"8px",fontWeight:700,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),
+                    React.createElement("td",{style:{padding:"8px"}},r.dose),
+                    React.createElement("td",{style:{padding:"8px"}},r.dar?React.createElement("span",{style:{color:da?"#EA580C":"#16A34A",fontWeight:600}},da?dd+"j ⏳":"✓"):React.createElement("span",{style:{color:stx}},"—")),
+                    React.createElement("td",{style:{padding:"8px",fontSize:10,color:stx}},lo?lo.dis:"Préventif"),
+                    React.createElement("td",{style:{padding:"8px"}},React.createElement("button",{onClick:()=>delTrt(r.id),style:{background:"#FEF2F2",borderRadius:6,border:"1px solid #FECACA",fontSize:11,cursor:"pointer",padding:"3px 6px"}},"🗑️")))}))))),
+
+      secSummary.filter(s=>s.tc>0).length>0&&React.createElement("div",{style:{marginTop:12}},
         React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},"📊 Traitements par section"),
         secSummary.filter(s=>s.tc>0).map(s=>React.createElement("div",{key:s.sk,style:{background:cbg,padding:"10px 12px",marginBottom:6,borderRadius:16,border:"1px solid "+bd,borderLeft:"4px solid "+s.sec.color,display:"flex",justifyContent:"space-between",alignItems:"center"}},
           React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,color:s.sec.color}},s.sec.name),React.createElement("span",{style:{fontSize:10,color:stx,marginLeft:6}},s.sec.area)),
-          tag("#EDE9FE","#6D28D9",s.tc+" 💊")))))
+          tag("#EDE9FE","#6D28D9",s.tc+" 💊"))))))
   );
 }
 
