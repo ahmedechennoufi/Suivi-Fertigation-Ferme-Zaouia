@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1B4332">
+  <title>Agro Berry — Traitement Phytosanitaire</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #F8FAF5; overscroll-behavior: none; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    input, select, textarea, button { font-family: inherit; }
+    #root { min-height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const APP_VERSION = "1.0.0";
+
+    // ============ FARM DATA ============
+    const SECTIONS = {
+      AG1: { name: "AG1", label: "HLS", fullName: "Myrtille Hors Sol", area: "3.00 ha", date: "Sept 2025", type: "hls", color: "#3B82F6", lightColor: "#DBEAFE",
+        parcelles: [
+          { id: "V13", area: "0.66 ha" }, { id: "V14", area: "0.74 ha" }, { id: "V15", area: "0.68 ha" },
+          { id: "V16", area: "0.86 ha" }, { id: "V9", area: "0.63 ha" }, { id: "V6", area: "0.74 ha" },
+        ]
+      },
+      AG2: { name: "AG2", label: "HLS", fullName: "Myrtille Hors Sol", area: "2.60 ha", date: "Oct 2025", type: "hls", color: "#6366F1", lightColor: "#E0E7FF",
+        parcelles: [
+          { id: "V17", area: "0.91 ha" }, { id: "V18", area: "1.00 ha" }, { id: "V19", area: "0.70 ha" },
+        ]
+      },
+      "AG3a": { name: "AG3", label: "HLS", fullName: "Myrtille Hors Sol (2024)", area: "1.80 ha", date: "Juil 2024", type: "hls", color: "#8B5CF6", lightColor: "#EDE9FE",
+        parcelles: [
+          { id: "V3", area: "0.30 ha" }, { id: "V5", area: "0.21 ha" }, { id: "V6", area: "0.39 ha" },
+          { id: "V12", area: "0.21 ha" }, { id: "V8", area: "0.20 ha" }, { id: "V9", area: "0.30 ha" },
+        ]
+      },
+      "AG3b": { name: "AG3", label: "HLS", fullName: "Myrtille Hors Sol (2023)", area: "2.00 ha", date: "Jan 2023", type: "hls", color: "#7C3AED", lightColor: "#F3E8FF",
+        parcelles: [
+          { id: "V10", area: "0.36 ha" }, { id: "V11", area: "0.25 ha" }, { id: "V16", area: "0.88 ha" },
+          { id: "V17", area: "0.79 ha" },
+        ]
+      },
+      AG4: { name: "AG4", label: "S", fullName: "Myrtille Sol", area: "6.00 ha", date: "Jan 2023", type: "sol", color: "#DC2626", lightColor: "#FEE2E2",
+        parcelles: [
+          { id: "V1", area: "0.42 ha" }, { id: "V2", area: "0.31 ha" }, { id: "V4", area: "0.42 ha" },
+          { id: "V5", area: "0.21 ha" }, { id: "V7", area: "0.45 ha" }, { id: "V12", area: "0.45 ha" },
+          { id: "V13", area: "0.45 ha" }, { id: "V15", area: "0.55 ha" }, { id: "V19", area: "0.78 ha" },
+          { id: "V20", area: "0.66 ha" }, { id: "V21", area: "0.65 ha" }, { id: "V18", area: "0.79 ha" },
+        ]
+      },
+      AG5: { name: "AG5", label: "S", fullName: "Myrtille Sol", area: "2.70 ha", date: "Oct 2011", type: "sol", color: "#E11D48", lightColor: "#FFE4E6",
+        parcelles: [
+          { id: "V5", area: "0.70 ha" }, { id: "V6", area: "0.74 ha" }, { id: "V9", area: "0.63 ha" },
+          { id: "V10", area: "0.54 ha" }, { id: "V11", area: "0.66 ha" },
+        ]
+      },
+      AG6: { name: "AG6", label: "S", fullName: "Myrtille Sol", area: "4.00 ha", date: "Avr 2013", type: "sol", color: "#EA580C", lightColor: "#FFF7ED",
+        parcelles: [
+          { id: "V31", area: "0.83 ha" }, { id: "V32", area: "0.66 ha" }, { id: "V33", area: "0.59 ha" },
+          { id: "V34", area: "0.64 ha" }, { id: "V35", area: "0.73 ha" }, { id: "V36", area: "0.52 ha" },
+        ]
+      },
+      S1: { name: "S1", label: "F", fullName: "Fraise", area: "5.50 ha", date: "Oct 2025", type: "fraise", color: "#16A34A", lightColor: "#DCFCE7",
+        parcelles: [
+          { id: "V1", area: "0.68 ha" }, { id: "V2", area: "0.37 ha" }, { id: "V3", area: "0.72 ha" },
+          { id: "V4", area: "0.80 ha" }, { id: "V5", area: "0.75 ha" }, { id: "V6", area: "0.29 ha" },
+          { id: "V7", area: "0.87 ha" }, { id: "V8", area: "0.76 ha" }, { id: "V9", area: "0.26 ha" },
+        ]
+      },
+      S2: { name: "S2", label: "F", fullName: "Fraise", area: "6.60 ha", date: "Oct 2025", type: "fraise", color: "#059669", lightColor: "#D1FAE5",
+        parcelles: [
+          { id: "V10", area: "0.77 ha" }, { id: "V11", area: "0.85 ha" }, { id: "V12", area: "0.66 ha" },
+          { id: "V13", area: "1.52 ha" }, { id: "V14", area: "0.67 ha" }, { id: "V15", area: "1.50 ha" },
+          { id: "V16", area: "0.66 ha" }, { id: "V17", area: "1.50 ha" }, { id: "V18", area: "0.60 ha" },
+        ]
+      },
+      S3: { name: "S3", label: "F", fullName: "Fraise", area: "3.80 ha", date: "Oct 2025", type: "fraise", color: "#0D9488", lightColor: "#CCFBF1",
+        parcelles: [
+          { id: "V19", area: "1.00 ha" }, { id: "V20", area: "0.70 ha" },
+        ]
+      },
+    };
+
+    const DISEASES_MYRTILLE = [
+      "Botrytis (Pourriture grise)", "Oïdium", "Phytophthora", "Anthracnose",
+      "Rouille", "Moniliose", "Septoriose", "Alternaria",
+      "Acariens", "Pucerons", "Drosophila suzukii", "Cochenilles",
+      "Thrips", "Nématodes", "Chlorose ferrique", "Carence magnésium",
+    ];
+    const DISEASES_FRAISE = [
+      "Botrytis (Pourriture grise)", "Oïdium", "Phytophthora", "Anthracnose",
+      "Verticilliose", "Rhizoctone", "Taches foliaires", "Mildiou",
+      "Acariens", "Pucerons", "Thrips", "Aleurodes",
+      "Limaces", "Nématodes", "Chlorose ferrique", "Carence calcium",
+    ];
+
+    const DEFAULT_USERS = [
+      { username: "manager", password: "admin123", role: "manager", name: "Manager" },
+      { username: "technicien", password: "tech123", role: "technicien", name: "Technicien" },
+      { username: "ingenieur", password: "ing123", role: "ingenieur", name: "Ingénieur" },
+    ];
+
+    const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const formatDate = (d) => new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const formatDateTime = (d) => new Date(d).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+    const severityColors = {
+      "Faible": { bg: "#FEF9C3", text: "#854D0E", border: "#FDE047" },
+      "Moyen": { bg: "#FED7AA", text: "#9A3412", border: "#FB923C" },
+      "Grave": { bg: "#FECACA", text: "#991B1B", border: "#F87171" },
+    };
+
+    function loadData(key, fallback) {
+      try { const d = localStorage.getItem("agro_fert_" + key); return d ? JSON.parse(d) : fallback; } catch { return fallback; }
+    }
+    function saveData(key, data) { localStorage.setItem("agro_fert_" + key, JSON.stringify(data)); }
+
+    // ============ GITHUB SYNC ============
+    async function githubSync(config, data) {
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+      const path = "data/fertigation-data.json";
+      const apiUrl = "https://api.github.com/repos/" + config.owner + "/" + config.repo + "/contents/" + path;
+      let sha = null;
+      try {
+        const existing = await fetch(apiUrl, { headers: { Authorization: "token " + config.token } });
+        if (existing.ok) { const ex = await existing.json(); sha = ex.sha; }
+      } catch {}
+      const body = { message: "Sync fertigation - " + new Date().toLocaleString("fr-FR"), content };
+      if (sha) body.sha = sha;
+      return fetch(apiUrl, { method: "PUT", headers: { Authorization: "token " + config.token, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    }
+
+    async function githubRestore(config) {
+      const apiUrl = "https://api.github.com/repos/" + config.owner + "/" + config.repo + "/contents/data/fertigation-data.json";
+      const res = await fetch(apiUrl, { headers: { Authorization: "token " + config.token } });
+      if (res.ok) {
+        const file = await res.json();
+        return JSON.parse(decodeURIComponent(escape(atob(file.content))));
+      }
+      return null;
+    }
+
+    // ============ MAIN APP ============
+    function App() {
+      const [currentUser, setCurrentUser] = useState({ username: "admin", role: "manager", name: "Admin" });
+      const [users, setUsers] = useState(() => loadData("users", DEFAULT_USERS));
+      const [records, setRecords] = useState(() => loadData("records", []));
+      const [engineerNotes, setEngineerNotes] = useState(() => loadData("engineer_notes", []));
+      const [page, setPage] = useState("map");
+      const [selectedParcelle, setSelectedParcelle] = useState(null);
+      const [selectedSection, setSelectedSection] = useState(null);
+      const [filterSection, setFilterSection] = useState("all");
+      const [githubConfig, setGithubConfig] = useState(() => loadData("github_config", { token: "", repo: "", owner: "" }));
+      const [syncStatus, setSyncStatus] = useState("");
+      const [toast, setToast] = useState(null);
+
+      useEffect(() => { saveData("users", users); }, [users]);
+      useEffect(() => { saveData("records", records); }, [records]);
+      useEffect(() => { saveData("engineer_notes", engineerNotes); }, [engineerNotes]);
+      useEffect(() => { saveData("github_config", githubConfig); }, [githubConfig]);
+
+      const showToast = (msg, type) => { setToast({ msg, type: type || "success" }); setTimeout(() => setToast(null), 3000); };
+
+      const syncToGithub = async () => {
+        if (!githubConfig.token || !githubConfig.repo || !githubConfig.owner) { showToast("Configurez GitHub d'abord", "error"); return; }
+        setSyncStatus("sync");
+        try {
+          const data = { records, engineerNotes, users: users.map(u => ({ ...u, password: "***" })), syncedAt: new Date().toISOString() };
+          const res = await githubSync(githubConfig, data);
+          if (res.ok) { setSyncStatus("done"); showToast("Synchronisé sur GitHub ✓"); }
+          else { setSyncStatus("error"); showToast("Erreur de sync", "error"); }
+        } catch (e) { setSyncStatus("error"); showToast("Erreur: " + e.message, "error"); }
+        setTimeout(() => setSyncStatus(""), 3000);
+      };
+
+      const restoreFromGithub = async () => {
+        if (!githubConfig.token || !githubConfig.repo || !githubConfig.owner) { showToast("Configurez GitHub d'abord", "error"); return; }
+        setSyncStatus("sync");
+        try {
+          const data = await githubRestore(githubConfig);
+          if (data) { if (data.records) setRecords(data.records); if (data.engineerNotes) setEngineerNotes(data.engineerNotes); setSyncStatus("done"); showToast("Données restaurées ✓"); }
+          else { setSyncStatus("error"); showToast("Aucune donnée trouvée", "error"); }
+        } catch (e) { setSyncStatus("error"); showToast("Erreur: " + e.message, "error"); }
+        setTimeout(() => setSyncStatus(""), 3000);
+      };
+
+      const getParcelleRecords = (sk, pid) => records.filter(r => r.sectionKey === sk && r.parcelleId === pid);
+
+      const getParcelleStatus = (sk, pid) => {
+        const recs = getParcelleRecords(sk, pid);
+        if (recs.length === 0) return "clean";
+        const active = recs.filter(r => !r.resolved);
+        if (active.some(r => r.severity === "Grave")) return "grave";
+        if (active.some(r => r.severity === "Moyen")) return "moyen";
+        if (active.some(r => r.severity === "Faible")) return "faible";
+        return "resolved";
+      };
+
+      const addRecord = (record) => {
+        const newRec = { ...record, id: generateId(), createdBy: currentUser.username, createdAt: new Date().toISOString() };
+        setRecords(prev => [newRec, ...prev]);
+        showToast("Maladie + traitement ajouté ✓");
+      };
+
+      const deleteRecord = (id) => { setRecords(prev => prev.filter(r => r.id !== id)); showToast("Supprimé"); };
+      const toggleResolved = (id) => { setRecords(prev => prev.map(r => r.id === id ? { ...r, resolved: !r.resolved, resolvedAt: !r.resolved ? new Date().toISOString() : null } : r)); };
+      const addEngineerNote = (note) => { const n = { ...note, id: generateId(), createdBy: currentUser.username, createdAt: new Date().toISOString() }; setEngineerNotes(prev => [n, ...prev]); showToast("Remarque ajoutée ✓"); };
+
+      return (
+        React.createElement("div", { style: { minHeight: "100vh", background: "#F8FAF5" } },
+          toast && React.createElement("div", { style: { position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, padding: "12px 24px", borderRadius: 12, background: toast.type === "error" ? "#DC2626" : "#16A34A", color: "#fff", fontWeight: 600, fontSize: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.2)", animation: "slideDown 0.3s ease" } }, toast.msg),
+
+          // Header
+          React.createElement("header", { style: { background: "linear-gradient(135deg, #1B4332, #2D6A4F)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 12px rgba(0,0,0,0.15)" } },
+            React.createElement("div", null,
+              React.createElement("h1", { style: { color: "#fff", fontSize: 18, fontWeight: 800, margin: 0, letterSpacing: "-0.5px" } }, "🌿 AGRO BERRY"),
+              React.createElement("p", { style: { color: "#A7F3D0", fontSize: 11, margin: 0 } }, "Traitement Phytosanitaire — Ferme Zaouia")
+            ),
+            React.createElement("span", { style: { color: "#A7F3D0", fontSize: 11 } }, "v" + APP_VERSION + " • 38 ha")
+          ),
+
+          // Nav
+          React.createElement("nav", { style: { display: "flex", background: "#fff", borderBottom: "1px solid #E5E7EB", overflow: "auto" } },
+            [
+              { key: "map", label: "🗺️ Plan" },
+              { key: "history", label: "📋 Historique" },
+              { key: "stats", label: "📊 Stats" },
+              { key: "settings", label: "⚙️ Paramètres" },
+            ].map(tab => React.createElement("button", {
+              key: tab.key, onClick: () => setPage(tab.key),
+              style: { flex: 1, padding: "12px 8px", border: "none", borderBottom: page === tab.key ? "3px solid #2D6A4F" : "3px solid transparent", background: page === tab.key ? "#F0FDF4" : "transparent", color: page === tab.key ? "#1B4332" : "#6B7280", fontWeight: page === tab.key ? 700 : 500, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }
+            }, tab.label))
+          ),
+
+          // Content
+          React.createElement("main", { style: { padding: 12, maxWidth: 1200, margin: "0 auto" } },
+            page === "map" && React.createElement(FarmMap, { sections: SECTIONS, records, getParcelleStatus, onSelectParcelle: (sk, p) => { setSelectedSection(sk); setSelectedParcelle(p); } }),
+            page === "history" && React.createElement(HistoryView, { records, sections: SECTIONS, filterSection, setFilterSection, onDelete: deleteRecord, onToggleResolved: toggleResolved }),
+            page === "stats" && React.createElement(StatsView, { records, sections: SECTIONS }),
+            page === "settings" && React.createElement(SettingsPage, { githubConfig, setGithubConfig, syncToGithub, restoreFromGithub, syncStatus, records, setRecords, showToast })
+          ),
+
+          // Parcelle Modal
+          selectedParcelle && selectedSection && React.createElement(ParcelleModal, {
+            section: SECTIONS[selectedSection], sectionKey: selectedSection, parcelle: selectedParcelle,
+            records: getParcelleRecords(selectedSection, selectedParcelle.id),
+            engineerNotes: engineerNotes.filter(n => n.sectionKey === selectedSection && n.parcelleId === selectedParcelle.id),
+            currentUser, onClose: () => { setSelectedParcelle(null); setSelectedSection(null); },
+            onAddRecord: addRecord, onDeleteRecord: deleteRecord, onToggleResolved: toggleResolved, onAddNote: addEngineerNote, showToast
+          })
+        )
+      );
+    }
+
+    // ============ FARM MAP ============
+    function FarmMap({ sections, records, getParcelleStatus, onSelectParcelle }) {
+      const [expandedSection, setExpandedSection] = useState(null);
+
+      const getSectionStats = (key) => {
+        const sec = sections[key]; let total = 0, active = 0, grave = 0;
+        sec.parcelles.forEach(p => { const recs = records.filter(r => r.sectionKey === key && r.parcelleId === p.id && !r.resolved); total += recs.length; active += recs.length; grave += recs.filter(r => r.severity === "Grave").length; });
+        return { total, active, grave };
+      };
+
+      const statusDot = (status) => {
+        const colors = { clean: "#22C55E", faible: "#EAB308", moyen: "#F97316", grave: "#EF4444", resolved: "#94A3B8" };
+        return React.createElement("span", { style: { display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: colors[status] || colors.clean, marginRight: 4 } });
+      };
+
+      const sectionGroups = [
+        { title: "🫐 Myrtille Hors Sol (HLS)", keys: ["AG1", "AG2", "AG3a", "AG3b"] },
+        { title: "🫐 Myrtille Sol", keys: ["AG4", "AG5", "AG6"] },
+        { title: "🍓 Fraise", keys: ["S1", "S2", "S3"] },
+      ];
+
+      return React.createElement("div", null,
+        // Summary Cards
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 16 } },
+          [
+            { label: "Total Parcelles", value: Object.values(sections).reduce((s, sec) => s + sec.parcelles.length, 0), icon: "🌱", bg: "#F0FDF4", color: "#16A34A" },
+            { label: "Cas Actifs", value: records.filter(r => !r.resolved).length, icon: "⚠️", bg: "#FEF9C3", color: "#CA8A04" },
+            { label: "Cas Graves", value: records.filter(r => !r.resolved && r.severity === "Grave").length, icon: "🔴", bg: "#FEE2E2", color: "#DC2626" },
+          ].map((card, i) => React.createElement("div", { key: i, style: { background: card.bg, borderRadius: 14, padding: "12px 10px", textAlign: "center" } },
+            React.createElement("div", { style: { fontSize: 20 } }, card.icon),
+            React.createElement("div", { style: { fontSize: 22, fontWeight: 800, color: card.color } }, card.value),
+            React.createElement("div", { style: { fontSize: 10, color: card.color, fontWeight: 600 } }, card.label)
+          ))
+        ),
+
+        // Section Groups
+        sectionGroups.map((group, gi) => React.createElement("div", { key: gi, style: { marginBottom: 16 } },
+          React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, color: "#374151", marginBottom: 8, padding: "8px 12px", background: "#fff", borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" } }, group.title),
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 } },
+            group.keys.map(key => {
+              const sec = sections[key]; const stats = getSectionStats(key); const isExpanded = expandedSection === key;
+              return React.createElement("div", { key, style: { gridColumn: isExpanded ? "1 / -1" : "auto" } },
+                React.createElement("div", {
+                  onClick: () => setExpandedSection(isExpanded ? null : key),
+                  style: { background: "#fff", borderRadius: 14, border: "2px solid " + sec.color + "22", overflow: "hidden", cursor: "pointer", boxShadow: isExpanded ? "0 4px 16px " + sec.color + "22" : "0 1px 3px rgba(0,0,0,0.06)" }
+                },
+                  React.createElement("div", { style: { background: "linear-gradient(135deg, " + sec.color + ", " + sec.color + "DD)", padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                    React.createElement("div", null,
+                      React.createElement("span", { style: { color: "#fff", fontWeight: 800, fontSize: 14 } }, sec.name),
+                      React.createElement("span", { style: { color: "rgba(255,255,255,0.8)", fontSize: 11, marginLeft: 6 } }, "(" + sec.label + ")")
+                    ),
+                    React.createElement("span", { style: { color: "#fff", fontSize: 11, fontWeight: 600 } }, sec.area)
+                  ),
+                  React.createElement("div", { style: { padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                    React.createElement("span", { style: { fontSize: 11, color: "#6B7280" } }, sec.parcelles.length + " parcelles • " + sec.date),
+                    React.createElement("div", { style: { display: "flex", gap: 6 } },
+                      stats.active > 0 && React.createElement("span", { style: { background: "#FEF3C7", color: "#92400E", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 } }, stats.active + " cas"),
+                      stats.grave > 0 && React.createElement("span", { style: { background: "#FEE2E2", color: "#991B1B", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 } }, stats.grave + " grave"),
+                      stats.active === 0 && React.createElement("span", { style: { background: "#DCFCE7", color: "#166534", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 } }, "✓ Sain")
+                    )
+                  )
+                ),
+                isExpanded && React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginTop: 8, animation: "fadeIn 0.3s ease" } },
+                  sec.parcelles.map(p => {
+                    const status = getParcelleStatus(key, p.id);
+                    const borderColors = { clean: "#E5E7EB", faible: "#FDE047", moyen: "#FB923C", grave: "#EF4444", resolved: "#CBD5E1" };
+                    const bgColors = { clean: "#fff", faible: "#FFFBEB", moyen: "#FFF7ED", grave: "#FEF2F2", resolved: "#F8FAFC" };
+                    return React.createElement("div", {
+                      key: p.id, onClick: (e) => { e.stopPropagation(); onSelectParcelle(key, p); },
+                      style: { background: bgColors[status], border: "2px solid " + borderColors[status], borderRadius: 10, padding: "10px 8px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }
+                    },
+                      React.createElement("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: 4 } }, statusDot(status), React.createElement("span", { style: { fontWeight: 700, fontSize: 13, color: "#1F2937" } }, p.id)),
+                      React.createElement("div", { style: { fontSize: 10, color: "#6B7280", marginTop: 2 } }, p.area)
+                    );
+                  })
+                )
+              );
+            })
+          )
+        )),
+
+        // Legend
+        React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 12, marginTop: 8 } },
+          React.createElement("p", { style: { fontSize: 11, fontWeight: 700, color: "#374151", marginBottom: 8 } }, "Légende"),
+          React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 12 } },
+            [{ label: "Sain", color: "#22C55E" }, { label: "Faible", color: "#EAB308" }, { label: "Moyen", color: "#F97316" }, { label: "Grave", color: "#EF4444" }, { label: "Résolu", color: "#94A3B8" }].map(l =>
+              React.createElement("div", { key: l.label, style: { display: "flex", alignItems: "center", gap: 4 } },
+                React.createElement("span", { style: { width: 10, height: 10, borderRadius: "50%", background: l.color, display: "inline-block" } }),
+                React.createElement("span", { style: { fontSize: 11, color: "#4B5563" } }, l.label)
+              )
+            )
+          )
+        )
+      );
+    }
+
+    // ============ PARCELLE MODAL ============
+    function ParcelleModal({ section, sectionKey, parcelle, records, engineerNotes, currentUser, onClose, onAddRecord, onDeleteRecord, onToggleResolved, onAddNote }) {
+      const [tab, setTab] = useState("records");
+      const diseases = section.type === "fraise" ? DISEASES_FRAISE : DISEASES_MYRTILLE;
+      const activeRecords = records.filter(r => !r.resolved);
+      const resolvedRecords = records.filter(r => r.resolved);
+
+      return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, animation: "fadeIn 0.2s ease" } },
+        React.createElement("div", { onClick: onClose, style: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" } }),
+        React.createElement("div", { style: { position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "90vh", background: "#fff", borderRadius: "20px 20px 0 0", overflow: "hidden", animation: "slideUp 0.3s ease", display: "flex", flexDirection: "column" } },
+          // Header
+          React.createElement("div", { style: { background: "linear-gradient(135deg, " + section.color + ", " + section.color + "CC)", padding: "16px 20px", flexShrink: 0 } },
+            React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+              React.createElement("div", null,
+                React.createElement("h2", { style: { color: "#fff", fontSize: 22, fontWeight: 800, margin: 0 } }, section.name + " — " + parcelle.id),
+                React.createElement("p", { style: { color: "rgba(255,255,255,0.85)", fontSize: 13, margin: "4px 0 0" } }, section.fullName + " • " + parcelle.area)
+              ),
+              React.createElement("button", { onClick: onClose, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", width: 32, height: 32, borderRadius: 10, fontSize: 18, cursor: "pointer" } }, "✕")
+            ),
+            React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 10 } },
+              React.createElement("span", { style: { background: "rgba(255,255,255,0.2)", color: "#fff", padding: "4px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600 } }, activeRecords.length + " cas actif" + (activeRecords.length !== 1 ? "s" : "")),
+              React.createElement("span", { style: { background: "rgba(255,255,255,0.2)", color: "#fff", padding: "4px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600 } }, resolvedRecords.length + " résolu" + (resolvedRecords.length !== 1 ? "s" : ""))
+            )
+          ),
+          // Tabs
+          React.createElement("div", { style: { display: "flex", borderBottom: "1px solid #E5E7EB", flexShrink: 0 } },
+            [{ key: "records", label: "🦠 Maladies" }, { key: "add", label: "➕ Ajouter" }].map(t =>
+              React.createElement("button", { key: t.key, onClick: () => setTab(t.key), style: { flex: 1, padding: 10, border: "none", borderBottom: tab === t.key ? "3px solid " + section.color : "3px solid transparent", background: tab === t.key ? section.color + "08" : "transparent", color: tab === t.key ? section.color : "#6B7280", fontWeight: tab === t.key ? 700 : 500, fontSize: 12, cursor: "pointer" } }, t.label)
+            )
+          ),
+          // Content
+          React.createElement("div", { style: { flex: 1, overflow: "auto", padding: 16 } },
+            tab === "records" && (records.length === 0 ?
+              React.createElement("div", { style: { textAlign: "center", padding: "40px 20px", color: "#9CA3AF" } },
+                React.createElement("div", { style: { fontSize: 48, marginBottom: 12 } }, "✅"),
+                React.createElement("p", { style: { fontWeight: 600, fontSize: 15 } }, "Parcelle saine"),
+                React.createElement("p", { style: { fontSize: 12 } }, "Aucune maladie enregistrée")
+              ) :
+              React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+                records.map(rec => React.createElement("div", { key: rec.id, style: { background: rec.resolved ? "#F8FAFC" : (severityColors[rec.severity] || {}).bg || "#fff", border: "1px solid " + (rec.resolved ? "#E2E8F0" : (severityColors[rec.severity] || {}).border || "#E5E7EB"), borderRadius: 14, padding: 14, opacity: rec.resolved ? 0.7 : 1 } },
+                  React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 } },
+                    React.createElement("div", null,
+                      React.createElement("span", { style: { fontWeight: 700, fontSize: 14, color: "#1F2937" } }, rec.disease),
+                      React.createElement("span", { style: { marginLeft: 8, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 8, background: (severityColors[rec.severity] || {}).bg, color: (severityColors[rec.severity] || {}).text, border: "1px solid " + (severityColors[rec.severity] || {}).border } }, rec.severity),
+                      rec.resolved && React.createElement("span", { style: { marginLeft: 6, fontSize: 10, fontWeight: 600, color: "#16A34A" } }, "✓ Résolu")
+                    )
+                  ),
+                  React.createElement("div", { style: { fontSize: 12, color: "#4B5563" } },
+                    React.createElement("div", null, "💊 ", React.createElement("strong", null, rec.product), " — " + rec.dose),
+                    React.createElement("div", null, "📅 Traitement: " + formatDate(rec.treatmentDate)),
+                    React.createElement("div", { style: { fontSize: 10, color: "#9CA3AF", marginTop: 2 } }, "Par " + rec.createdBy + " • " + formatDateTime(rec.createdAt))
+                  ),
+                  React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 10 } },
+                    React.createElement("button", { onClick: () => onToggleResolved(rec.id), style: { flex: 1, padding: 8, borderRadius: 8, border: "1px solid #E5E7EB", background: rec.resolved ? "#FEF3C7" : "#DCFCE7", color: rec.resolved ? "#92400E" : "#166534", fontSize: 11, fontWeight: 600, cursor: "pointer" } }, rec.resolved ? "↩️ Réactiver" : "✅ Marquer résolu"),
+                    React.createElement("button", { onClick: () => { if (confirm("Supprimer ?")) onDeleteRecord(rec.id); }, style: { padding: "8px 12px", borderRadius: 8, border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626", fontSize: 11, fontWeight: 600, cursor: "pointer" } }, "🗑️")
+                  )
+                ))
+              )
+            ),
+            tab === "add" && React.createElement(AddDiseaseForm, { sectionKey, parcelleId: parcelle.id, diseases, sectionType: section.type, onSubmit: onAddRecord, sectionColor: section.color })
+          )
+        )
+      );
+    }
+
+    // ============ ADD DISEASE FORM ============
+    function AddDiseaseForm({ sectionKey, parcelleId, diseases, sectionType, onSubmit, sectionColor }) {
+      const [disease, setDisease] = useState("");
+      const [customDisease, setCustomDisease] = useState("");
+      const [severity, setSeverity] = useState("");
+      const [product, setProduct] = useState("");
+      const [dose, setDose] = useState("");
+      const [treatmentDate, setTreatmentDate] = useState(new Date().toISOString().split("T")[0]);
+      const [observation, setObservation] = useState("");
+
+      const handleSubmit = () => {
+        const finalDisease = disease === "__custom__" ? customDisease : disease;
+        if (!finalDisease || !severity || !product || !dose || !treatmentDate) { alert("Remplissez tous les champs obligatoires"); return; }
+        onSubmit({ sectionKey, parcelleId, disease: finalDisease, severity, product, dose, treatmentDate, observation, resolved: false });
+        setDisease(""); setCustomDisease(""); setSeverity(""); setProduct(""); setDose(""); setObservation("");
+      };
+
+      const is = { width: "100%", padding: "12px 14px", borderRadius: 12, border: "2px solid #E5E7EB", fontSize: 14, outline: "none" };
+
+      return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } },
+        React.createElement("h3", { style: { fontSize: 16, fontWeight: 700, color: "#1F2937", margin: 0 } }, "Nouveau cas"),
+        React.createElement("div", null,
+          React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "🦠 Maladie / Ravageur *"),
+          React.createElement("select", { value: disease, onChange: e => setDisease(e.target.value), style: { ...is, background: "#fff", cursor: "pointer" } },
+            React.createElement("option", { value: "" }, "— Sélectionner —"),
+            diseases.map(d => React.createElement("option", { key: d, value: d }, d)),
+            React.createElement("option", { value: "__custom__" }, "✏️ Autre (saisie libre)")
+          ),
+          disease === "__custom__" && React.createElement("input", { value: customDisease, onChange: e => setCustomDisease(e.target.value), placeholder: "Nom de la maladie...", style: { ...is, marginTop: 8 } })
+        ),
+        React.createElement("div", null,
+          React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "⚠️ Gravité *"),
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 } },
+            ["Faible", "Moyen", "Grave"].map(s => React.createElement("button", { key: s, onClick: () => setSeverity(s), style: { padding: "12px 8px", borderRadius: 12, border: "2px solid " + (severity === s ? severityColors[s].border : "#E5E7EB"), background: severity === s ? severityColors[s].bg : "#fff", color: severity === s ? severityColors[s].text : "#6B7280", fontWeight: 700, fontSize: 13, cursor: "pointer" } }, (s === "Faible" ? "🟡" : s === "Moyen" ? "🟠" : "🔴") + " " + s))
+          )
+        ),
+        React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "💊 Produit *"), React.createElement("input", { value: product, onChange: e => setProduct(e.target.value), placeholder: "Ex: Soufre, Bouillie bordelaise...", style: is })),
+        React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "📏 Dose *"), React.createElement("input", { value: dose, onChange: e => setDose(e.target.value), placeholder: "Ex: 5 kg/ha, 2 L/ha...", style: is })),
+        React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "📅 Date du traitement *"), React.createElement("input", { type: "date", value: treatmentDate, onChange: e => setTreatmentDate(e.target.value), style: is })),
+        React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 6 } }, "📝 Observation (optionnel)"), React.createElement("textarea", { value: observation, onChange: e => setObservation(e.target.value), placeholder: "Notes...", rows: 3, style: { ...is, resize: "vertical" } })),
+        React.createElement("button", { onClick: handleSubmit, style: { padding: 14, borderRadius: 12, border: "none", background: "linear-gradient(135deg, " + sectionColor + ", " + sectionColor + "CC)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" } }, "✓ Enregistrer")
+      );
+    }
+
+    // ============ ENGINEER NOTES ============
+    function EngineerNotesTab({ notes, sectionKey, parcelleId, onAddNote, sectionColor }) {
+      const [noteText, setNoteText] = useState("");
+      const [showForm, setShowForm] = useState(false);
+
+      return React.createElement("div", null,
+        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+          React.createElement("h3", { style: { fontSize: 15, fontWeight: 700, color: "#1F2937", margin: 0 } }, "🔒 Remarques privées"),
+          React.createElement("button", { onClick: () => setShowForm(!showForm), style: { padding: "8px 14px", borderRadius: 10, border: "none", background: sectionColor, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, showForm ? "Annuler" : "+ Ajouter")
+        ),
+        React.createElement("p", { style: { fontSize: 11, color: "#9CA3AF", marginBottom: 12, fontStyle: "italic" } }, "Ces remarques ne sont visibles que par vous."),
+        showForm && React.createElement("div", { style: { marginBottom: 16 } },
+          React.createElement("textarea", { value: noteText, onChange: e => setNoteText(e.target.value), placeholder: "Votre remarque...", rows: 4, style: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "2px solid #E5E7EB", fontSize: 14, outline: "none", resize: "vertical", marginBottom: 8 } }),
+          React.createElement("button", { onClick: () => { if (noteText.trim()) { onAddNote({ sectionKey, parcelleId, text: noteText }); setNoteText(""); setShowForm(false); } }, style: { width: "100%", padding: 12, borderRadius: 10, border: "none", background: sectionColor, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" } }, "Enregistrer")
+        ),
+        notes.length === 0 && !showForm ? React.createElement("div", { style: { textAlign: "center", padding: "30px 20px", color: "#9CA3AF" } }, React.createElement("div", { style: { fontSize: 36 } }, "🔒"), React.createElement("p", { style: { fontSize: 13 } }, "Aucune remarque")) :
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          notes.map(n => React.createElement("div", { key: n.id, style: { background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 12, padding: 12 } },
+            React.createElement("p", { style: { fontSize: 13, color: "#1F2937", margin: 0, whiteSpace: "pre-wrap" } }, n.text),
+            React.createElement("p", { style: { fontSize: 10, color: "#9CA3AF", margin: "6px 0 0" } }, formatDateTime(n.createdAt))
+          ))
+        )
+      );
+    }
+
+    // ============ HISTORY VIEW ============
+    function HistoryView({ records, sections, filterSection, setFilterSection, onDelete, onToggleResolved }) {
+      const filtered = filterSection === "all" ? records : records.filter(r => r.sectionKey === filterSection);
+      return React.createElement("div", null,
+        React.createElement("h2", { style: { fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 12px" } }, "📋 Historique des traitements"),
+        React.createElement("div", { style: { display: "flex", gap: 6, overflow: "auto", marginBottom: 12, paddingBottom: 4 } },
+          React.createElement("button", { onClick: () => setFilterSection("all"), style: { padding: "6px 12px", borderRadius: 20, border: filterSection === "all" ? "2px solid #2D6A4F" : "1px solid #E5E7EB", background: filterSection === "all" ? "#F0FDF4" : "#fff", color: filterSection === "all" ? "#2D6A4F" : "#6B7280", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" } }, "Tout (" + records.length + ")"),
+          Object.keys(sections).map(key => {
+            const count = records.filter(r => r.sectionKey === key).length;
+            if (count === 0) return null;
+            return React.createElement("button", { key, onClick: () => setFilterSection(key), style: { padding: "6px 12px", borderRadius: 20, border: filterSection === key ? "2px solid " + sections[key].color : "1px solid #E5E7EB", background: filterSection === key ? sections[key].color + "11" : "#fff", color: filterSection === key ? sections[key].color : "#6B7280", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" } }, sections[key].name + " (" + count + ")");
+          })
+        ),
+        filtered.length === 0 ?
+          React.createElement("div", { style: { textAlign: "center", padding: "40px 20px", color: "#9CA3AF" } }, React.createElement("div", { style: { fontSize: 48 } }, "📋"), React.createElement("p", { style: { fontWeight: 600 } }, "Aucun enregistrement")) :
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+            filtered.map(rec => {
+              const sec = sections[rec.sectionKey];
+              return React.createElement("div", { key: rec.id, style: { background: "#fff", borderRadius: 14, border: "1px solid #E5E7EB", padding: 14, borderLeft: "4px solid " + (sec ? sec.color : "#6B7280"), opacity: rec.resolved ? 0.65 : 1 } },
+                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" } },
+                  React.createElement("div", null,
+                    React.createElement("span", { style: { fontWeight: 700, fontSize: 13, color: sec ? sec.color : "#374151" } }, (sec ? sec.name : "?") + " — " + rec.parcelleId),
+                    rec.resolved && React.createElement("span", { style: { marginLeft: 6, fontSize: 10, fontWeight: 600, color: "#16A34A" } }, "✓ Résolu")
+                  ),
+                  React.createElement("span", { style: { fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 8, background: (severityColors[rec.severity] || {}).bg, color: (severityColors[rec.severity] || {}).text } }, rec.severity)
+                ),
+                React.createElement("div", { style: { fontSize: 14, fontWeight: 600, color: "#1F2937", margin: "6px 0 4px" } }, rec.disease),
+                React.createElement("div", { style: { fontSize: 12, color: "#4B5563" } }, "💊 " + rec.product + " — " + rec.dose),
+                React.createElement("div", { style: { fontSize: 11, color: "#9CA3AF", marginTop: 4 } }, "📅 " + formatDate(rec.treatmentDate) + " • Par " + rec.createdBy),
+                React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 8 } },
+                  React.createElement("button", { onClick: () => onToggleResolved(rec.id), style: { padding: "6px 10px", borderRadius: 8, border: "1px solid #E5E7EB", background: rec.resolved ? "#FEF3C7" : "#DCFCE7", fontSize: 10, fontWeight: 600, cursor: "pointer", color: rec.resolved ? "#92400E" : "#166534" } }, rec.resolved ? "↩️ Réactiver" : "✅ Résolu"),
+                  React.createElement("button", { onClick: () => { if (confirm("Supprimer ?")) onDelete(rec.id); }, style: { padding: "6px 10px", borderRadius: 8, border: "1px solid #FECACA", background: "#FEF2F2", fontSize: 10, fontWeight: 600, cursor: "pointer", color: "#DC2626" } }, "🗑️ Supprimer")
+                )
+              );
+            })
+          )
+      );
+    }
+
+    // ============ STATS VIEW ============
+    function StatsView({ records, sections }) {
+      const activeRecords = records.filter(r => !r.resolved);
+      const resolvedRecords = records.filter(r => r.resolved);
+      const bySeverity = { Faible: 0, Moyen: 0, Grave: 0 };
+      activeRecords.forEach(r => { if (bySeverity[r.severity] !== undefined) bySeverity[r.severity]++; });
+      const bySection = {};
+      Object.keys(sections).forEach(k => { bySection[k] = records.filter(r => r.sectionKey === k).length; });
+      const byDisease = {};
+      activeRecords.forEach(r => { byDisease[r.disease] = (byDisease[r.disease] || 0) + 1; });
+      const topDiseases = Object.entries(byDisease).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      return React.createElement("div", null,
+        React.createElement("h2", { style: { fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 16px" } }, "📊 Statistiques"),
+        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 } },
+          [
+            { label: "Total cas", value: records.length, bg: "#F0FDF4", color: "#16A34A", icon: "📊" },
+            { label: "Cas actifs", value: activeRecords.length, bg: "#FEF9C3", color: "#CA8A04", icon: "⚠️" },
+            { label: "Résolus", value: resolvedRecords.length, bg: "#DBEAFE", color: "#2563EB", icon: "✅" },
+            { label: "Taux résolution", value: records.length ? Math.round(resolvedRecords.length / records.length * 100) + "%" : "—", bg: "#F3E8FF", color: "#7C3AED", icon: "📈" },
+          ].map((c, i) => React.createElement("div", { key: i, style: { background: c.bg, borderRadius: 14, padding: 14, textAlign: "center" } },
+            React.createElement("div", { style: { fontSize: 20 } }, c.icon),
+            React.createElement("div", { style: { fontSize: 24, fontWeight: 800, color: c.color } }, c.value),
+            React.createElement("div", { style: { fontSize: 11, fontWeight: 600, color: c.color } }, c.label)
+          ))
+        ),
+        // By Severity
+        React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 16, marginBottom: 12 } },
+          React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, margin: "0 0 12px" } }, "Par gravité (cas actifs)"),
+          ["Grave", "Moyen", "Faible"].map(s => {
+            const count = bySeverity[s]; const max = Math.max(...Object.values(bySeverity), 1);
+            return React.createElement("div", { key: s, style: { marginBottom: 8 } },
+              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 4 } },
+                React.createElement("span", null, (s === "Faible" ? "🟡" : s === "Moyen" ? "🟠" : "🔴") + " " + s), React.createElement("span", null, count)
+              ),
+              React.createElement("div", { style: { height: 8, background: "#F3F4F6", borderRadius: 4, overflow: "hidden" } },
+                React.createElement("div", { style: { height: "100%", width: (count / max) * 100 + "%", background: severityColors[s].border, borderRadius: 4, transition: "width 0.5s ease" } })
+              )
+            );
+          })
+        ),
+        // Top Diseases
+        topDiseases.length > 0 && React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 16 } },
+          React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, margin: "0 0 12px" } }, "Top maladies (actives)"),
+          topDiseases.map(([name, count], i) => React.createElement("div", { key: name, style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < topDiseases.length - 1 ? "1px solid #F3F4F6" : "none" } },
+            React.createElement("span", { style: { fontSize: 13, fontWeight: 500, color: "#374151" } }, (i + 1) + ". " + name),
+            React.createElement("span", { style: { background: "#FEF3C7", color: "#92400E", fontSize: 11, fontWeight: 700, padding: "2px 10px", borderRadius: 10 } }, count)
+          ))
+        )
+      );
+    }
+
+    // ============ USER MANAGEMENT ============
+    function UserManagement({ users, setUsers, currentUser, showToast }) {
+      const [showForm, setShowForm] = useState(false);
+      const [newUser, setNewUser] = useState({ username: "", password: "", name: "", role: "technicien" });
+      const addUser = () => {
+        if (!newUser.username || !newUser.password || !newUser.name) { alert("Remplissez tout"); return; }
+        if (users.some(u => u.username === newUser.username)) { alert("Existe déjà"); return; }
+        setUsers(prev => [...prev, { ...newUser }]); setNewUser({ username: "", password: "", name: "", role: "technicien" }); setShowForm(false); showToast("Utilisateur ajouté ✓");
+      };
+      const deleteUser = (un) => { if (un === currentUser.username) { alert("Impossible"); return; } if (confirm("Supprimer " + un + " ?")) { setUsers(prev => prev.filter(u => u.username !== un)); showToast("Supprimé"); } };
+      const roleLabels = { manager: "👤 Manager", ingenieur: "🔬 Ingénieur", technicien: "🔧 Technicien" };
+      const roleBgs = { manager: "#DBEAFE", ingenieur: "#F3E8FF", technicien: "#DCFCE7" };
+      const is = { width: "100%", padding: "12px 14px", borderRadius: 12, border: "2px solid #E5E7EB", fontSize: 14, outline: "none" };
+
+      return React.createElement("div", null,
+        React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } },
+          React.createElement("h2", { style: { fontSize: 18, fontWeight: 800, color: "#1F2937", margin: 0 } }, "👥 Utilisateurs"),
+          React.createElement("button", { onClick: () => setShowForm(!showForm), style: { padding: "8px 16px", borderRadius: 10, border: "none", background: "#2D6A4F", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, showForm ? "Annuler" : "+ Ajouter")
+        ),
+        showForm && React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 16, marginBottom: 16, border: "1px solid #E5E7EB" } },
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } },
+            React.createElement("input", { value: newUser.name, onChange: e => setNewUser(p => ({ ...p, name: e.target.value })), placeholder: "Nom complet", style: is }),
+            React.createElement("input", { value: newUser.username, onChange: e => setNewUser(p => ({ ...p, username: e.target.value })), placeholder: "Identifiant", style: is }),
+            React.createElement("input", { value: newUser.password, onChange: e => setNewUser(p => ({ ...p, password: e.target.value })), placeholder: "Mot de passe", style: is }),
+            React.createElement("select", { value: newUser.role, onChange: e => setNewUser(p => ({ ...p, role: e.target.value })), style: { ...is, background: "#fff" } },
+              React.createElement("option", { value: "technicien" }, "🔧 Technicien"),
+              React.createElement("option", { value: "ingenieur" }, "🔬 Ingénieur"),
+              React.createElement("option", { value: "manager" }, "👤 Manager")
+            ),
+            React.createElement("button", { onClick: addUser, style: { padding: 12, borderRadius: 10, border: "none", background: "#2D6A4F", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" } }, "Créer le compte")
+          )
+        ),
+        React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
+          users.map(u => React.createElement("div", { key: u.username, style: { background: "#fff", borderRadius: 14, padding: 14, border: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" } },
+            React.createElement("div", null,
+              React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#1F2937" } }, u.name),
+              React.createElement("div", { style: { fontSize: 12, color: "#6B7280" } }, "@" + u.username)
+            ),
+            React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              React.createElement("span", { style: { background: roleBgs[u.role], padding: "4px 10px", borderRadius: 10, fontSize: 11, fontWeight: 600 } }, roleLabels[u.role]),
+              u.username !== currentUser.username && React.createElement("button", { onClick: () => deleteUser(u.username), style: { padding: "6px 8px", borderRadius: 8, border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626", fontSize: 12, cursor: "pointer" } }, "🗑️")
+            )
+          ))
+        )
+      );
+    }
+
+    // ============ SETTINGS PAGE ============
+    function SettingsPage({ githubConfig, setGithubConfig, syncToGithub, restoreFromGithub, syncStatus, records, setRecords, showToast }) {
+      const is = { width: "100%", padding: "12px 14px", borderRadius: 12, border: "2px solid #E5E7EB", fontSize: 14, outline: "none" };
+      const exportData = () => {
+        const blob = new Blob([JSON.stringify({ records, exportedAt: new Date().toISOString(), version: APP_VERSION }, null, 2)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "agro-berry-" + new Date().toISOString().split("T")[0] + ".json"; a.click(); showToast("Exporté ✓");
+      };
+      const importData = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (data.records) { setRecords(data.records); showToast("Importé ✓"); } else showToast("Format invalide", "error"); } catch { showToast("Erreur", "error"); } };
+        reader.readAsText(file);
+      };
+
+      return React.createElement("div", null,
+        React.createElement("h2", { style: { fontSize: 18, fontWeight: 800, color: "#1F2937", margin: "0 0 16px" } }, "⚙️ Paramètres"),
+        // GitHub
+        React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 16, marginBottom: 12, border: "1px solid #E5E7EB" } },
+          React.createElement("h3", { style: { fontSize: 15, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" } }, "🐙 GitHub — Sauvegarde & Sync"),
+          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10 } },
+            React.createElement("div", null, React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 4, display: "block" } }, "Propriétaire GitHub"), React.createElement("input", { value: githubConfig.owner, onChange: e => setGithubConfig(p => ({ ...p, owner: e.target.value })), placeholder: "votre-username", style: is })),
+            React.createElement("div", null, React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 4, display: "block" } }, "Nom du repo"), React.createElement("input", { value: githubConfig.repo, onChange: e => setGithubConfig(p => ({ ...p, repo: e.target.value })), placeholder: "agro-berry-data", style: is })),
+            React.createElement("div", null, React.createElement("label", { style: { fontSize: 12, fontWeight: 600, color: "#4B5563", marginBottom: 4, display: "block" } }, "Token GitHub"), React.createElement("input", { type: "password", value: githubConfig.token, onChange: e => setGithubConfig(p => ({ ...p, token: e.target.value })), placeholder: "ghp_xxxxxxxxxxxx", style: is })),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 } },
+              React.createElement("button", { onClick: syncToGithub, disabled: syncStatus === "sync", style: { padding: 12, borderRadius: 10, border: "none", background: syncStatus === "sync" ? "#9CA3AF" : "#2D6A4F", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" } }, syncStatus === "sync" ? "⏳ Sync..." : "☁️ Sauvegarder"),
+              React.createElement("button", { onClick: restoreFromGithub, disabled: syncStatus === "sync", style: { padding: 12, borderRadius: 10, border: "none", background: syncStatus === "sync" ? "#9CA3AF" : "#7C3AED", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" } }, syncStatus === "sync" ? "⏳..." : "📥 Restaurer")
+            )
+          )
+        ),
+        // Export/Import
+        React.createElement("div", { style: { background: "#fff", borderRadius: 14, padding: 16, marginBottom: 12, border: "1px solid #E5E7EB" } },
+          React.createElement("h3", { style: { fontSize: 15, fontWeight: 700, color: "#1F2937", margin: "0 0 12px" } }, "💾 Export / Import"),
+          React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } },
+            React.createElement("button", { onClick: exportData, style: { padding: 12, borderRadius: 10, border: "1px solid #E5E7EB", background: "#F9FAFB", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer" } }, "📤 Exporter"),
+            React.createElement("label", { style: { padding: 12, borderRadius: 10, border: "1px solid #E5E7EB", background: "#F9FAFB", color: "#374151", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "center" } }, "📥 Importer", React.createElement("input", { type: "file", accept: ".json", onChange: importData, style: { display: "none" } }))
+          )
+        ),
+        // Danger
+        React.createElement("div", { style: { background: "#FEF2F2", borderRadius: 14, padding: 16, border: "1px solid #FECACA" } },
+          React.createElement("h3", { style: { fontSize: 15, fontWeight: 700, color: "#DC2626", margin: "0 0 12px" } }, "⚠️ Zone de danger"),
+          React.createElement("button", { onClick: () => { if (confirm("SUPPRIMER TOUTES les données ?")) { setRecords([]); showToast("Supprimé"); } }, style: { width: "100%", padding: 12, borderRadius: 10, border: "1px solid #DC2626", background: "#fff", color: "#DC2626", fontSize: 13, fontWeight: 600, cursor: "pointer" } }, "🗑️ Tout supprimer")
+        ),
+        React.createElement("p", { style: { textAlign: "center", fontSize: 11, color: "#9CA3AF", marginTop: 16 } }, "Agro Berry — Traitement Phytosanitaire v" + APP_VERSION)
+      );
+    }
+
+    ReactDOM.render(React.createElement(App), document.getElementById("root"));
+  </script>
+</body>
+</html>
