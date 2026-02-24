@@ -1,0 +1,25 @@
+{
+  "records": [],
+  "engineerNotes": [],
+  "users": [
+    {
+      "username": "manager",
+      "password": "***",
+      "role": "manager",
+      "name": "Manager"
+    },
+    {
+      "username": "technicien",
+      "password": "***",
+      "role": "technicien",
+      "name": "Technicien"
+    },
+    {
+      "username": "ingenieur",
+      "password": "***",
+      "role": "ingenieur",
+      "name": "Ingénieur"
+    }
+  ],
+  "syncedAt": "2026-02-24T08:50:16.848Z"
+}
