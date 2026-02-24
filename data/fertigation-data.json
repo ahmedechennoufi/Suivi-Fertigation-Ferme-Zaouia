@@ -1,5 +1,20 @@
 {
-  "records": [],
+  "records": [
+    {
+      "sectionKey": "AG1",
+      "parcelleId": "V13",
+      "disease": "Botrytis (Pourriture grise)",
+      "severity": "Grave",
+      "product": "Soufre",
+      "dose": "5kg/h",
+      "treatmentDate": "2026-02-24",
+      "observation": "",
+      "resolved": false,
+      "id": "mm0d9hvbe6swq0nrz5l",
+      "createdBy": "admin",
+      "createdAt": "2026-02-24T08:51:39.575Z"
+    }
+  ],
   "engineerNotes": [],
   "users": [
     {
@@ -21,5 +36,5 @@
       "name": "Ingénieur"
     }
   ],
-  "syncedAt": "2026-02-24T08:50:16.848Z"
+  "syncedAt": "2026-02-24T08:51:52.471Z"
 }
