@@ -5,27 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1B4332">
-  <title>Agro Berry — Traitement Phytosanitaire</title>
+  <meta name="theme-color" content="#0F172A">
+  <title>Agro Berry — Phytosanitaire</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-    body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F8FAF5;overscroll-behavior:none}
-    body.dark{background:#111;color:#e0e0e0}
-    ::-webkit-scrollbar{width:4px;height:4px}
-    ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+    body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#F1F5F9;overscroll-behavior:none;color:#1E293B}
+    body.dark{background:#0F172A;color:#E2E8F0}
+    ::-webkit-scrollbar{width:3px;height:3px}
+    ::-webkit-scrollbar-thumb{background:#94A3B8;border-radius:4px}
     @keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}
-    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
     .blink{animation:blink 1.2s ease-in-out infinite}
+    .pulse{animation:pulse 2s infinite}
     input,select,textarea,button{font-family:inherit}
+    .glass{background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    .dark .glass{background:rgba(30,41,59,0.8)}
+    .btn{padding:10px 16px;border-radius:12px;border:none;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px}
+    .btn:active{transform:scale(0.97)}
+    .btn-primary{background:linear-gradient(135deg,#10B981,#059669);color:#fff;box-shadow:0 2px 8px rgba(16,185,129,0.3)}
+    .btn-surv{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,0.3)}
+    .btn-trt{background:linear-gradient(135deg,#8B5CF6,#7C3AED);color:#fff;box-shadow:0 2px 8px rgba(139,92,246,0.3)}
+    .btn-danger{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;box-shadow:0 2px 8px rgba(239,68,68,0.3)}
+    .btn-ghost{background:transparent;border:1.5px solid #E2E8F0;color:#64748B}
+    .dark .btn-ghost{border-color:#334155;color:#94A3B8}
+    .card{border-radius:16px;overflow:hidden;transition:all 0.2s}
     .photo-grid{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-    .photo-grid img{width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #E5E7EB}
-    .photo-grid img:hover{opacity:0.8}
-    .photo-full{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;cursor:pointer}
-    .photo-full img{max-width:95%;max-height:90vh;border-radius:8px}
+    .photo-grid img{width:56px;height:56px;object-fit:cover;border-radius:10px;cursor:pointer;border:2px solid rgba(0,0,0,0.06)}
+    .photo-full{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .photo-full img{max-width:95%;max-height:90vh;border-radius:12px}
+    .tag{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
   </style>
 </head>
 <body>
@@ -35,7 +49,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
 const{useState,useEffect,useRef,useMemo}=React;
-const VER="2.1.1";
+const VER="3.0.0";
 const SECTIONS={AG1:{name:"AG1",label:"HLS",fullName:"Myrtille Hors Sol",area:"3.00 ha",date:"Sept 2025",type:"hls",color:"#3B82F6",parcelles:[{id:"V13",area:"0.66 ha"},{id:"V14",area:"0.74 ha"},{id:"V15",area:"0.68 ha"},{id:"V16",area:"0.86 ha"},{id:"V9",area:"0.63 ha"},{id:"V6",area:"0.74 ha"}]},AG2:{name:"AG2",label:"HLS",fullName:"Myrtille Hors Sol",area:"2.60 ha",date:"Oct 2025",type:"hls",color:"#6366F1",parcelles:[{id:"V17",area:"0.91 ha"},{id:"V18",area:"1.00 ha"},{id:"V19",area:"0.70 ha"}]},AG3a:{name:"AG3",label:"HLS",fullName:"Myrtille HLS (2024)",area:"1.80 ha",date:"Juil 2024",type:"hls",color:"#8B5CF6",parcelles:[{id:"V3",area:"0.30 ha"},{id:"V5",area:"0.21 ha"},{id:"V6",area:"0.39 ha"},{id:"V12",area:"0.21 ha"},{id:"V8",area:"0.20 ha"},{id:"V9",area:"0.30 ha"}]},AG3b:{name:"AG3",label:"HLS",fullName:"Myrtille HLS (2023)",area:"2.00 ha",date:"Jan 2023",type:"hls",color:"#7C3AED",parcelles:[{id:"V10",area:"0.36 ha"},{id:"V11",area:"0.25 ha"},{id:"V16",area:"0.88 ha"},{id:"V17",area:"0.79 ha"}]},AG4:{name:"AG4",label:"S",fullName:"Myrtille Sol",area:"6.00 ha",date:"Jan 2023",type:"sol",color:"#DC2626",parcelles:[{id:"V1",area:"0.42 ha"},{id:"V2",area:"0.31 ha"},{id:"V4",area:"0.42 ha"},{id:"V5",area:"0.21 ha"},{id:"V7",area:"0.45 ha"},{id:"V12",area:"0.45 ha"},{id:"V13",area:"0.45 ha"},{id:"V15",area:"0.55 ha"},{id:"V19",area:"0.78 ha"},{id:"V20",area:"0.66 ha"},{id:"V21",area:"0.65 ha"},{id:"V18",area:"0.79 ha"}]},AG5:{name:"AG5",label:"S",fullName:"Myrtille Sol",area:"2.70 ha",date:"Oct 2011",type:"sol",color:"#E11D48",parcelles:[{id:"V5",area:"0.70 ha"},{id:"V6",area:"0.74 ha"},{id:"V9",area:"0.63 ha"},{id:"V10",area:"0.54 ha"},{id:"V11",area:"0.66 ha"}]},AG6:{name:"AG6",label:"S",fullName:"Myrtille Sol",area:"4.00 ha",date:"Avr 2013",type:"sol",color:"#EA580C",parcelles:[{id:"V31",area:"0.83 ha"},{id:"V32",area:"0.66 ha"},{id:"V33",area:"0.59 ha"},{id:"V34",area:"0.64 ha"},{id:"V35",area:"0.73 ha"},{id:"V36",area:"0.52 ha"}]},S1:{name:"S1",label:"F",fullName:"Fraise",area:"5.50 ha",date:"Oct 2025",type:"fraise",color:"#16A34A",parcelles:[{id:"V1",area:"0.68 ha"},{id:"V2",area:"0.37 ha"},{id:"V3",area:"0.72 ha"},{id:"V4",area:"0.80 ha"},{id:"V5",area:"0.75 ha"},{id:"V6",area:"0.29 ha"},{id:"V7",area:"0.87 ha"},{id:"V8",area:"0.76 ha"},{id:"V9",area:"0.26 ha"}]},S2:{name:"S2",label:"F",fullName:"Fraise",area:"6.60 ha",date:"Oct 2025",type:"fraise",color:"#059669",parcelles:[{id:"V10",area:"0.77 ha"},{id:"V11",area:"0.85 ha"},{id:"V12",area:"0.66 ha"},{id:"V13",area:"1.52 ha"},{id:"V14",area:"0.67 ha"},{id:"V15",area:"1.50 ha"},{id:"V16",area:"0.66 ha"},{id:"V17",area:"1.50 ha"},{id:"V18",area:"0.60 ha"}]},S3:{name:"S3",label:"F",fullName:"Fraise",area:"3.80 ha",date:"Oct 2025",type:"fraise",color:"#0D9488",parcelles:[{id:"V19",area:"1.00 ha"},{id:"V20",area:"0.70 ha"}]}};
 const DIS_M=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Rouille","Moniliose","Septoriose","Alternaria","Acariens","Pucerons","Drosophila suzukii","Cochenilles","Thrips","Nématodes","Chlorose ferrique","Carence magnésium"];
 const DIS_F=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Verticilliose","Rhizoctone","Taches foliaires","Mildiou","Acariens","Pucerons","Thrips","Aleurodes","Limaces","Nématodes","Chlorose ferrique","Carence calcium"];
@@ -44,67 +58,22 @@ const fD=d=>new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit
 const fDT=d=>new Date(d).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const fH=d=>new Date(d).toLocaleString("fr-FR",{hour:"2-digit",minute:"2-digit"});
 const isToday=d=>{const t=new Date(),dd=new Date(d);return t.toDateString()===dd.toDateString()};
-const isThisWeek=d=>{const now=new Date(),dd=new Date(d),diff=(now-dd)/(864e5);return diff>=0&&diff<7};
-const timeAgo=d=>{const m=Math.floor((new Date()-new Date(d))/6e4);if(m<1)return"à l'instant";if(m<60)return"il y a "+m+"min";const h=Math.floor(m/60);if(h<24)return"il y a "+h+"h";return"il y a "+Math.floor(h/24)+"j"};
-const SC={Faible:{bg:"#FEF9C3",text:"#854D0E",border:"#FDE047"},Moyen:{bg:"#FED7AA",text:"#9A3412",border:"#FB923C"},Grave:{bg:"#FECACA",text:"#991B1B",border:"#F87171"}};
+const isThisWeek=d=>{const diff=(new Date()-new Date(d))/864e5;return diff>=0&&diff<7};
+const timeAgo=d=>{const m=Math.floor((new Date()-new Date(d))/6e4);if(m<1)return"à l'instant";if(m<60)return m+"min";const h=Math.floor(m/60);if(h<24)return h+"h";return Math.floor(h/24)+"j"};
+const SC={Faible:{bg:"#FEF9C3",text:"#854D0E",border:"#FDE047",icon:"🟡"},Moyen:{bg:"#FED7AA",text:"#9A3412",border:"#FB923C",icon:"🟠"},Grave:{bg:"#FECACA",text:"#991B1B",border:"#F87171",icon:"🔴"}};
 const stClr={clean:"#22C55E",faible:"#EAB308",moyen:"#F97316",grave:"#EF4444",resolved:"#94A3B8"};
 const stBg={clean:"#fff",faible:"#FFFBEB",moyen:"#FFF7ED",grave:"#FEF2F2",resolved:"#F8FAFC"};
 const stBdr={clean:"#E5E7EB",faible:"#FDE047",moyen:"#FB923C",grave:"#EF4444",resolved:"#CBD5E1"};
 function ld(k,f){try{const d=localStorage.getItem("ab_"+k);return d?JSON.parse(d):f}catch{return f}}
-function sv(k,d){try{localStorage.setItem("ab_"+k,JSON.stringify(d))}catch(e){console.error("Storage full:",e);if(k==="observations"){const trimmed=d.map(o=>({...o,photos:(o.photos||[]).slice(0,2)}));try{localStorage.setItem("ab_"+k,JSON.stringify(trimmed))}catch{localStorage.setItem("ab_"+k,JSON.stringify(d.map(o=>({...o,photos:[]}))))}}}}
+function sv(k,d){try{localStorage.setItem("ab_"+k,JSON.stringify(d))}catch(e){if(k==="observations"){try{localStorage.setItem("ab_"+k,JSON.stringify(d.map(o=>({...o,photos:(o.photos||[]).slice(0,1)}))))}catch{localStorage.setItem("ab_"+k,JSON.stringify(d.map(o=>({...o,photos:[]}))))}}}}
 (function(){const old=ld("records",[]);if(old.length>0&&ld("observations",null)===null){const obs=[],trt=[];old.forEach(r=>{const oid=gid();obs.push({id:oid,sk:r.sk,pid:r.pid,dis:r.dis,sev:r.sev,date:r.tdate||r.at,obsText:r.obs||"",zone:"",photos:[],res:r.res||false,resAt:r.resAt||null,by:r.by||"user",at:r.at});if(r.prod&&r.dose)trt.push({id:gid(),sk:r.sk,pid:r.pid,obsId:oid,prod:r.prod,dose:r.dose,tdate:r.tdate||r.at,dar:"",darEnd:"",notes:"",by:r.by||"user",at:r.at})});sv("observations",obs);sv("treatments",trt)}})();
 async function ghSync(c,data){const ct=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";let sha=null;try{const e=await fetch(u,{headers:{Authorization:"token "+c.token}});if(e.ok)sha=(await e.json()).sha}catch{}const b={message:"Sync phyto - "+new Date().toLocaleString("fr-FR"),content:ct};if(sha)b.sha=sha;return fetch(u,{method:"PUT",headers:{Authorization:"token "+c.token,"Content-Type":"application/json"},body:JSON.stringify(b)})}
 async function ghRestore(c){const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";const r=await fetch(u,{headers:{Authorization:"token "+c.token}});if(r.ok){const f=await r.json();return JSON.parse(decodeURIComponent(escape(atob(f.content))))}return null}
-
-// Photo component
+function compressImg(file,maxW=800,q=0.6){return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");let w=img.width,h=img.height;if(w>maxW){h=h*(maxW/w);w=maxW}c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",q))};img.src=URL.createObjectURL(file)})}
 function PhotoViewer({src,onClose}){return React.createElement("div",{className:"photo-full",onClick:onClose},React.createElement("img",{src,onClick:e=>e.stopPropagation()}))}
-function PhotoGrid({photos,dark}){
-  const[view,setView]=useState(null);
-  if(!photos||!photos.length)return null;
-  return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"photo-grid"},photos.map((p,i)=>React.createElement("img",{key:i,src:p,onClick:()=>setView(p),style:{border:"2px solid "+(dark?"#444":"#E5E7EB")}}))),
-    view&&React.createElement(PhotoViewer,{src:view,onClose:()=>setView(null)}));
-}
-function compressImg(file,maxW=800,quality=0.6){
-  return new Promise(res=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");let w=img.width,h=img.height;if(w>maxW){h=h*(maxW/w);w=maxW}c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",quality))};img.src=URL.createObjectURL(file)})
-}
-function PhotoCapture({photos,setPhotos,dark,bd}){
-  const ref=useRef();
-  const add=async e=>{const files=Array.from(e.target.files);for(const f of files){try{const compressed=await compressImg(f);setPhotos(p=>[...p,compressed])}catch(err){console.error("Photo error:",err)}}};
-  const del=i=>setPhotos(p=>p.filter((_,j)=>j!==i));
-  return React.createElement("div",null,
-    React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}},
-      photos.map((p,i)=>React.createElement("div",{key:i,style:{position:"relative"}},
-        React.createElement("img",{src:p,style:{width:56,height:56,objectFit:"cover",borderRadius:8,border:"2px solid "+bd}}),
-        React.createElement("button",{onClick:()=>del(i),style:{position:"absolute",top:-4,right:-4,width:18,height:18,borderRadius:"50%",background:"#EF4444",color:"#fff",border:"none",fontSize:10,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}},"✕")))),
-    React.createElement("button",{onClick:()=>ref.current.click(),style:{padding:"8px 14px",borderRadius:8,border:"2px dashed "+bd,background:"transparent",color:dark?"#9CA3AF":"#6B7280",fontSize:12,cursor:"pointer",width:"100%"}},"📷 Ajouter photo"+(photos.length?" ("+photos.length+")":"")),
-    React.createElement("input",{ref,type:"file",accept:"image/*",capture:"environment",multiple:true,onChange:add,style:{display:"none"}}));
-}
-
-// Observation detail card (reusable, shows everything)
-function ObsCard({r,treatments,sec,dark,cbg,ctx,stx,bd,onTog,onDel,showSection,compact}){
-  const lt=treatments?treatments.filter(t=>t.obsId===r.id):[];
-  const sevS=SC[r.sev]||{};
-  return React.createElement("div",{style:{background:r.res?(dark?"#1A1A1A":"#F8FAFC"):(dark?sevS.bg+"22":sevS.bg||"#fff"),border:"1px solid "+(r.res?bd:sevS.border||bd),borderRadius:14,padding:compact?10:14,opacity:r.res?0.6:1,borderLeft:"4px solid "+(sec?.color||"#888")}},
-    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}},
-      React.createElement("div",null,
-        showSection&&React.createElement("div",{style:{fontSize:10,fontWeight:700,color:sec?.color,marginBottom:2}},sec?.name+" — "+r.pid+" • "+sec?.fullName),
-        React.createElement("span",{style:{fontWeight:700,fontSize:compact?13:15}},r.dis),
-        React.createElement("span",{style:{marginLeft:6,fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:6,background:sevS.bg,color:sevS.text,border:"1px solid "+sevS.border}},r.sev),
-        r.res&&React.createElement("span",{style:{marginLeft:4,fontSize:9,color:"#16A34A",fontWeight:700,background:"#DCFCE7",padding:"2px 6px",borderRadius:6}},"✓ Résolu")),
-      React.createElement("span",{style:{fontSize:9,color:stx,whiteSpace:"nowrap",marginLeft:8}},timeAgo(r.at))),
-    React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,fontSize:11,color:stx,marginBottom:4}},
-      React.createElement("span",null,"📅 "+fD(r.date)+" à "+fH(r.at)),
-      r.zone&&React.createElement("span",null,"📐 "+r.zone+"% touché")),
-    r.obsText&&React.createElement("div",{style:{fontSize:12,padding:"6px 10px",background:dark?"#252525":"#F9FAFB",borderRadius:8,margin:"6px 0",borderLeft:"3px solid "+(sec?.color||"#888"),color:ctx}},"📝 "+r.obsText),
-    React.createElement(PhotoGrid,{photos:r.photos||[],dark}),
-    lt.length>0&&React.createElement("div",{style:{marginTop:8,padding:"8px 10px",background:dark?"#0A1A2E":"#EFF6FF",borderRadius:10,border:"1px solid "+(dark?"#1E3A5F":"#BFDBFE")}},
-      React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#2563EB",marginBottom:4}},"💊 "+lt.length+" traitement"+(lt.length>1?"s":"")),
-      lt.map(t=>{const da=t.darEnd&&new Date(t.darEnd)>new Date();return React.createElement("div",{key:t.id,style:{fontSize:11,color:stx,padding:"3px 0",display:"flex",justifyContent:"space-between"}},React.createElement("span",null,t.prod+" — "+t.dose+" ("+fD(t.tdate)+")"),da&&React.createElement("span",{style:{color:"#EA580C",fontWeight:700,fontSize:10}},"⏳ DAR "+Math.ceil((new Date(t.darEnd)-new Date())/864e5)+"j"))})),
-    (onTog||onDel)&&React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
-      onTog&&React.createElement("button",{onClick:()=>onTog(r.id),style:{flex:1,padding:7,borderRadius:8,border:"1px solid "+bd,background:r.res?"#FEF3C7":"#DCFCE7",fontSize:10,fontWeight:600,cursor:"pointer",color:r.res?"#92400E":"#166534"}},r.res?"↩️ Réactiver":"✅ Résolu"),
-      onDel&&React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDel(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")));
-}
+function PhotoGrid({photos,dark}){const[v,setV]=useState(null);if(!photos||!photos.length)return null;return React.createElement(React.Fragment,null,React.createElement("div",{className:"photo-grid"},photos.map((p,i)=>React.createElement("img",{key:i,src:p,onClick:()=>setV(p)}))),v&&React.createElement(PhotoViewer,{src:v,onClose:()=>setV(null)}))}
+function PhotoCapture({photos,setPhotos,dark,bd}){const ref=useRef();const add=async e=>{for(const f of Array.from(e.target.files)){try{setPhotos(p=>[...p,await compressImg(f)])}catch{}}};
+  return React.createElement("div",null,React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}},photos.map((p,i)=>React.createElement("div",{key:i,style:{position:"relative"}},React.createElement("img",{src:p,style:{width:56,height:56,objectFit:"cover",borderRadius:10,border:"2px solid "+(dark?"#334155":"#E2E8F0")}}),React.createElement("button",{onClick:()=>setPhotos(ps=>ps.filter((_,j)=>j!==i)),style:{position:"absolute",top:-5,right:-5,width:20,height:20,borderRadius:"50%",background:"#EF4444",color:"#fff",border:"2px solid #fff",fontSize:10,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}},"✕")))),React.createElement("button",{onClick:()=>ref.current.click(),className:"btn btn-ghost",style:{width:"100%",justifyContent:"center"}},"📷 "+(photos.length?photos.length+" photo"+(photos.length>1?"s":""):"Ajouter photo")),React.createElement("input",{ref,type:"file",accept:"image/*",capture:"environment",multiple:true,onChange:add,style:{display:"none"}}))}
 
 function App(){
   const[observations,setObs]=useState(()=>ld("observations",[]));
@@ -126,292 +95,316 @@ function App(){
   const getObsPS=(sk,pid)=>{const r=getObsP(sk,pid);if(!r.length)return"clean";const a=r.filter(x=>!x.res);if(a.some(x=>x.sev==="Grave"))return"grave";if(a.some(x=>x.sev==="Moyen"))return"moyen";if(a.some(x=>x.sev==="Faible"))return"faible";return"resolved"};
   const getObsAC=(sk,pid)=>getObsP(sk,pid).filter(r=>!r.res).length;
   const getTrtP=(sk,pid)=>treatments.filter(r=>r.sk===sk&&r.pid===pid);
-  const getTrtCount=(sk,pid)=>getTrtP(sk,pid).length;
-  const getLastTrt=(sk,pid)=>{const tt=getTrtP(sk,pid);return tt.length?tt.reduce((a,b)=>new Date(a.tdate)>new Date(b.tdate)?a:b):null};
-  const hasPendingDAR=(sk,pid)=>{const now=new Date();return getTrtP(sk,pid).some(tt=>tt.darEnd&&new Date(tt.darEnd)>now)};
   const addObs=r=>{setObs(p=>[{...r,id:gid(),by:"user",at:new Date().toISOString()},...p]);t("Observation ✓")};
   const delObs=id=>{setObs(p=>p.filter(r=>r.id!==id));t("Supprimé")};
   const togObs=id=>{setObs(p=>p.map(r=>r.id===id?{...r,res:!r.res,resAt:!r.res?new Date().toISOString():null}:r))};
   const addTrt=r=>{setTrt(p=>[{...r,id:gid(),by:"user",at:new Date().toISOString()},...p]);t("Traitement ✓")};
   const delTrt=id=>{setTrt(p=>p.filter(r=>r.id!==id));t("Supprimé")};
   const openModal=(sk,p,mode)=>{setSelS(sk);setSelP(p);setModalMode(mode)};
-  const bg=dark?"#111":"#F8FAF5",cbg=dark?"#1E1E1E":"#fff",ctx=dark?"#E5E7EB":"#1F2937",stx=dark?"#9CA3AF":"#6B7280",bd=dark?"#333":"#E5E7EB";
+  const bg=dark?"#0F172A":"#F1F5F9",cbg=dark?"#1E293B":"#fff",ctx=dark?"#E2E8F0":"#1E293B",stx=dark?"#94A3B8":"#64748B",bd=dark?"#334155":"#E2E8F0";
   const th={bg,cbg,ctx,stx,bd,dark};
 
-  return React.createElement("div",{style:{minHeight:"100vh",background:bg,color:ctx}},
-    toast&&React.createElement("div",{style:{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:9999,padding:"12px 24px",borderRadius:12,background:toast.tp==="err"?"#DC2626":"#16A34A",color:"#fff",fontWeight:600,fontSize:14,boxShadow:"0 8px 32px rgba(0,0,0,0.3)",animation:"slideDown 0.3s"}},toast.m),
-    React.createElement("header",{style:{background:dark?"linear-gradient(135deg,#0D1B0F,#1A3A2A)":"linear-gradient(135deg,#1B4332,#2D6A4F)",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
-      React.createElement("div",null,React.createElement("h1",{style:{color:"#fff",fontSize:16,fontWeight:800,margin:0}},"🌿 AGRO BERRY"),React.createElement("p",{style:{color:"#A7F3D0",fontSize:10,margin:0}},"Traitement Phytosanitaire — Ferme Zaouia")),
-      React.createElement("div",{style:{display:"flex",gap:6,alignItems:"center"}},React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",padding:"6px 10px",borderRadius:8,fontSize:14,cursor:"pointer"}},dark?"☀️":"🌙"),React.createElement("span",{style:{color:"#A7F3D0",fontSize:10}},"v"+VER))),
-    React.createElement("nav",{style:{display:"flex",background:cbg,borderBottom:"1px solid "+bd,overflow:"auto"}},
-      [{k:"dash",l:"📊 Dashboard",ac:"#16A34A"},{k:"surv",l:"🔍 Surveillance",ac:"#F59E0B"},{k:"trt",l:"💊 Traitement",ac:"#8B5CF6"},{k:"plan",l:"🏗️ Plan",ac:"#2D6A4F"},{k:"settings",l:"⚙️",ac:"#2D6A4F"}].map(tab=>
-        React.createElement("button",{key:tab.k,onClick:()=>setPage(tab.k),style:{flex:tab.k==="settings"?"none":1,padding:"11px "+(tab.k==="settings"?"12px":"4px"),border:"none",borderBottom:page===tab.k?"3px solid "+tab.ac:"3px solid transparent",background:page===tab.k?(dark?"#1A3A2A":"#F0FDF4"):"transparent",color:page===tab.k?(dark?"#6EE7B7":"#1B4332"):stx,fontWeight:page===tab.k?700:500,fontSize:10,cursor:"pointer",whiteSpace:"nowrap"}},tab.l))),
-    React.createElement("main",{style:{padding:10,maxWidth:1200,margin:"0 auto"}},
-      page==="dash"&&React.createElement(Dashboard,{...th,observations,treatments,onOpenParcel:openModal}),
+  return React.createElement("div",{style:{minHeight:"100vh",background:bg,color:ctx,paddingBottom:70}},
+    toast&&React.createElement("div",{style:{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:9999,padding:"12px 24px",borderRadius:14,background:toast.tp==="err"?"#EF4444":"#10B981",color:"#fff",fontWeight:600,fontSize:14,boxShadow:"0 12px 40px rgba(0,0,0,0.3)",animation:"slideDown 0.3s",backdropFilter:"blur(8px)"}},toast.m),
+
+    // Header
+    React.createElement("header",{style:{background:dark?"linear-gradient(135deg,#0F172A,#1E293B)":"linear-gradient(135deg,#0F172A,#1E293B)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        React.createElement("div",{style:{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#10B981,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}},"🌿"),
+        React.createElement("div",null,React.createElement("h1",{style:{color:"#fff",fontSize:17,fontWeight:800,margin:0,letterSpacing:"-0.3px"}},"AGRO BERRY"),React.createElement("p",{style:{color:"#94A3B8",fontSize:10,margin:0,fontWeight:500}},"Phytosanitaire • Ferme Zaouia"))),
+      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+        React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.08)",border:"none",color:"#fff",padding:"8px",borderRadius:10,fontSize:16,cursor:"pointer",width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center"}},dark?"☀️":"🌙"))),
+
+    // Content
+    React.createElement("main",{style:{padding:"12px 14px",maxWidth:800,margin:"0 auto"}},
+      page==="dash"&&React.createElement(Dashboard,{...th,observations,treatments,onOpenParcel:openModal,delObs,delTrt,togObs}),
       page==="surv"&&React.createElement(SurvMap,{...th,observations,treatments,getPS:getObsPS,getAC:getObsAC,onSelect:(sk,p)=>openModal(sk,p,"surv"),search,setSearch,filter,setFilter}),
-      page==="trt"&&React.createElement(TrtMap,{...th,observations,treatments,getTrtCount,getLastTrt,hasPendingDAR,getObsPS,getObsAC,onSelect:(sk,p)=>openModal(sk,p,"trt"),search,setSearch,filter,setFilter}),
+      page==="trt"&&React.createElement(TrtMap,{...th,observations,treatments,onSelect:(sk,p)=>openModal(sk,p,"trt"),search,setSearch,filter,setFilter}),
       page==="plan"&&React.createElement(VisualPlan,{...th}),
       page==="settings"&&React.createElement(Settings,{...th,ghCfg,setGhCfg,sync,restore,syncSt,observations,treatments,setObs,setTrt,t})),
-    selP&&selS&&React.createElement(ParcelModal,{...th,sec:SECTIONS[selS],sk:selS,par:selP,mode:modalMode,observations:getObsP(selS,selP.id),allObs:observations,treatments:getTrtP(selS,selP.id),onClose:()=>{setSelP(null);setSelS(null)},onAddObs:addObs,onDelObs:delObs,onTogObs:togObs,onAddTrt:addTrt,onDelTrt:delTrt,setMode:setModalMode}));
+
+    // Bottom nav
+    React.createElement("nav",{className:"glass",style:{position:"fixed",bottom:0,left:0,right:0,display:"flex",justifyContent:"space-around",padding:"6px 0 env(safe-area-inset-bottom,8px)",borderTop:"1px solid "+(dark?"#1E293B":"#E2E8F0"),zIndex:100}},
+      [{k:"dash",l:"Dashboard",i:"📊"},{k:"surv",l:"Surveillance",i:"🔍"},{k:"trt",l:"Traitement",i:"💊"},{k:"plan",l:"Plan",i:"🏗️"},{k:"settings",l:"Config",i:"⚙️"}].map(tab=>
+        React.createElement("button",{key:tab.k,onClick:()=>setPage(tab.k),style:{background:"transparent",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"4px 8px",cursor:"pointer",borderRadius:10,color:page===tab.k?(tab.k==="surv"?"#F59E0B":tab.k==="trt"?"#8B5CF6":"#10B981"):stx,fontWeight:page===tab.k?700:500,position:"relative"}},
+          page===tab.k&&React.createElement("div",{style:{position:"absolute",top:-6,width:24,height:3,borderRadius:2,background:tab.k==="surv"?"#F59E0B":tab.k==="trt"?"#8B5CF6":"#10B981"}}),
+          React.createElement("span",{style:{fontSize:18}},tab.i),
+          React.createElement("span",{style:{fontSize:9}},tab.l)))),
+
+    // Modal
+    selP&&selS&&React.createElement(ParcelModal,{...th,sec:SECTIONS[selS],sk:selS,par:selP,mode:modalMode,observations:getObsP(selS,selP.id),treatments:getTrtP(selS,selP.id),onClose:()=>{setSelP(null);setSelS(null)},onAddObs:addObs,onDelObs:delObs,onTogObs:togObs,onAddTrt:addTrt,onDelTrt:delTrt,setMode:setModalMode}));
 }
 
 // ===== DASHBOARD =====
-function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel}){
+function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,delObs,delTrt,togObs}){
+  const[dashTab,setDashTab]=useState("surv");
   const ao=observations.filter(r=>!r.res);
   const grave=ao.filter(r=>r.sev==="Grave");
   const untreated=ao.filter(o=>!treatments.some(t=>t.obsId===o.id));
   const todayObs=observations.filter(r=>isToday(r.at));
   const weekObs=observations.filter(r=>isThisWeek(r.at));
   const pendingDAR=treatments.filter(t=>t.darEnd&&new Date(t.darEnd)>new Date());
+  const recentTrt=treatments.filter(r=>isThisWeek(r.at));
+  const todayTrt=treatments.filter(r=>isToday(r.at));
 
-  // Section summary
   const secSummary=Object.entries(SECTIONS).map(([sk,sec])=>{
-    const obs=observations.filter(r=>r.sk===sk&&!r.res);
-    const g=obs.filter(r=>r.sev==="Grave").length;
-    const m=obs.filter(r=>r.sev==="Moyen").length;
-    const f=obs.filter(r=>r.sev==="Faible").length;
-    const tc=treatments.filter(t=>t.sk===sk).length;
-    return{sk,sec,total:obs.length,g,m,f,tc};
-  }).filter(s=>s.total>0).sort((a,b)=>b.g-a.g||b.total-a.total);
+    const obs=observations.filter(r=>r.sk===sk&&!r.res);const g=obs.filter(r=>r.sev==="Grave").length;const m=obs.filter(r=>r.sev==="Moyen").length;const f=obs.filter(r=>r.sev==="Faible").length;const tc=treatments.filter(t=>t.sk===sk).length;
+    return{sk,sec,total:obs.length,g,m,f,tc};}).filter(s=>s.total>0||s.tc>0).sort((a,b)=>b.g-a.g||b.total-a.total);
+
+  const KPI=({i,v,l,c,b})=>React.createElement("div",{style:{background:b,borderRadius:14,padding:"12px 8px",textAlign:"center",border:"1px solid "+bd}},
+    React.createElement("div",{style:{fontSize:16}},i),React.createElement("div",{style:{fontSize:22,fontWeight:800,color:c,marginTop:2}},v),React.createElement("div",{style:{fontSize:9,color:c,fontWeight:600,opacity:0.8}},l));
 
   return React.createElement("div",null,
-    // KPI row
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:12}},
-      [{l:"Cas actifs",v:ao.length,i:"⚠️",c:"#CA8A04",b:dark?"#2A2000":"#FEF9C3"},
-       {l:"Graves",v:grave.length,i:"🔴",c:"#DC2626",b:dark?"#2A0000":"#FEE2E2"},
-       {l:"Non traités",v:untreated.length,i:"🚨",c:"#EA580C",b:dark?"#2A1500":"#FFF7ED"},
-       {l:"Aujourd'hui",v:todayObs.length,i:"📋",c:"#2563EB",b:dark?"#001A2A":"#DBEAFE"}
-      ].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:12,padding:"8px 4px",textAlign:"center"}},
-        React.createElement("div",{style:{fontSize:14}},c.i),
-        React.createElement("div",{style:{fontSize:20,fontWeight:800,color:c.c}},c.v),
-        React.createElement("div",{style:{fontSize:8,color:c.c,fontWeight:600}},c.l)))),
+    // KPIs
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}},
+      React.createElement(KPI,{i:"⚠️",v:ao.length,l:"Actifs",c:"#EAB308",b:dark?"#1C1917":"#FFFBEB"}),
+      React.createElement(KPI,{i:"🔴",v:grave.length,l:"Graves",c:"#EF4444",b:dark?"#1C1017":"#FEF2F2"}),
+      React.createElement(KPI,{i:"🚨",v:untreated.length,l:"Non traités",c:"#EA580C",b:dark?"#1C1510":"#FFF7ED"}),
+      React.createElement(KPI,{i:"💊",v:treatments.length,l:"Traitements",c:"#8B5CF6",b:dark?"#1A1028":"#F5F3FF"})),
 
-    // ALERTES
-    (grave.length>0||untreated.length>0||pendingDAR.length>0)&&React.createElement("div",{style:{marginBottom:14}},
-      React.createElement("h3",{style:{fontSize:14,fontWeight:800,color:"#DC2626",marginBottom:8}},"🚨 ALERTES"),
-      grave.length>0&&React.createElement("div",{style:{background:dark?"#2A0000":"#FEF2F2",border:"1px solid "+(dark?"#5C0000":"#FECACA"),borderRadius:12,padding:10,marginBottom:6}},
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#DC2626",marginBottom:6}},"🔴 "+grave.length+" cas GRAVE"+(grave.length>1?"S":"")),
-        grave.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>{const p=sec.parcelles.find(p=>p.id===r.pid);if(p)onOpenParcel(r.sk,p,"surv")},style:{padding:"6px 8px",marginBottom:4,background:dark?"#3A0000":"#fff",borderRadius:8,cursor:"pointer",border:"1px solid "+(dark?"#5C0000":"#FECACA")}},
-          React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},
-            React.createElement("span",{style:{fontWeight:700,fontSize:12,color:sec?.color}},sec?.name+" — "+r.pid),
-            React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at))),
-          React.createElement("div",{style:{fontSize:12,fontWeight:600}},r.dis),
+    // Tab switcher Surveillance / Traitement
+    React.createElement("div",{style:{display:"flex",gap:8,marginBottom:14,background:dark?"#1E293B":"#E2E8F0",borderRadius:14,padding:4}},
+      [{k:"surv",l:"🔍 Surveillance",c:"#F59E0B"},{k:"trt",l:"💊 Traitement",c:"#8B5CF6"}].map(t=>
+        React.createElement("button",{key:t.k,onClick:()=>setDashTab(t.k),style:{flex:1,padding:"10px",borderRadius:11,border:"none",background:dashTab===t.k?cbg:"transparent",color:dashTab===t.k?t.c:stx,fontWeight:dashTab===t.k?700:500,fontSize:13,cursor:"pointer",boxShadow:dashTab===t.k?"0 2px 8px rgba(0,0,0,0.08)":"none",transition:"all 0.2s"}},t.l))),
+
+    // === SURVEILLANCE TAB ===
+    dashTab==="surv"&&React.createElement("div",{style:{animation:"fadeIn 0.3s"}},
+      // Alertes graves
+      grave.length>0&&React.createElement("div",{className:"card",style:{background:dark?"#2A1015":"#FEF2F2",border:"1px solid "+(dark?"#5C2020":"#FECACA"),marginBottom:12,padding:14}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#DC2626",marginBottom:10,display:"flex",alignItems:"center",gap:6}},React.createElement("span",{className:"pulse",style:{width:10,height:10,borderRadius:"50%",background:"#EF4444",display:"inline-block"}}),grave.length+" cas GRAVE"+(grave.length>1?"S":"")),
+        grave.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>{const p=sec?.parcelles.find(p=>p.id===r.pid);if(p)onOpenParcel(r.sk,p,"surv")},style:{padding:10,marginBottom:6,background:cbg,borderRadius:12,cursor:"pointer",border:"1px solid "+bd}},
+          React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},React.createElement("span",{style:{fontWeight:700,fontSize:12,color:sec?.color}},sec?.name+" — "+r.pid),React.createElement("span",{className:"tag",style:{background:"#FECACA",color:"#991B1B"}},"Grave")),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:e=>{e.stopPropagation();if(confirm("Supprimer ?"))delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",padding:2}},"🗑️"))),
+          React.createElement("div",{style:{fontSize:13,fontWeight:600}},r.dis),
           r.zone&&React.createElement("span",{style:{fontSize:10,color:stx}}," • "+r.zone+"% touché"),
-          r.obsText&&React.createElement("div",{style:{fontSize:10,color:stx,fontStyle:"italic",marginTop:2}},r.obsText),
+          r.obsText&&React.createElement("div",{style:{fontSize:11,color:stx,marginTop:3,fontStyle:"italic"}},r.obsText),
           React.createElement(PhotoGrid,{photos:(r.photos||[]).slice(0,3),dark}))})),
 
-      untreated.length>0&&React.createElement("div",{style:{background:dark?"#2A1500":"#FFF7ED",border:"1px solid "+(dark?"#5C3A00":"#FDBA74"),borderRadius:12,padding:10,marginBottom:6}},
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#EA580C",marginBottom:6}},"⚠️ "+untreated.length+" cas NON TRAITÉ"+(untreated.length>1?"S":"")),
-        untreated.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>{const p=sec.parcelles.find(p=>p.id===r.pid);if(p)onOpenParcel(r.sk,p,"trt")},style:{padding:"5px 8px",marginBottom:3,background:dark?"#3A2500":"#fff",borderRadius:8,cursor:"pointer",border:"1px solid "+(dark?"#5C3A00":"#FDBA74"),display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      // Non traités
+      untreated.length>0&&React.createElement("div",{className:"card",style:{background:dark?"#1C1510":"#FFF7ED",border:"1px solid "+(dark?"#5C3A10":"#FDBA74"),marginBottom:12,padding:14}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#EA580C",marginBottom:8}},"⚠️ "+untreated.length+" cas en attente de traitement"),
+        untreated.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>{const p=sec?.parcelles.find(p=>p.id===r.pid);if(p)onOpenParcel(r.sk,p,"trt")},style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",marginBottom:4,background:cbg,borderRadius:10,cursor:"pointer",border:"1px solid "+bd}},
           React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),React.createElement("span",{style:{fontSize:11,marginLeft:6}},r.dis)),
-          React.createElement("span",{style:{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:6,background:(SC[r.sev]||{}).bg,color:(SC[r.sev]||{}).text}},r.sev))})),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"tag",style:{background:(SC[r.sev]||{}).bg,color:(SC[r.sev]||{}).text}},r.sev),React.createElement("button",{onClick:e=>{e.stopPropagation();if(confirm("Supprimer ?"))delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer"}},"🗑️")))})),
 
-      pendingDAR.length>0&&React.createElement("div",{style:{background:dark?"#1A0028":"#F3E8FF",border:"1px solid "+(dark?"#3D1F6B":"#DDD6FE"),borderRadius:12,padding:10}},
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#7C3AED",marginBottom:6}},"⏳ "+pendingDAR.length+" DAR actif"+(pendingDAR.length>1?"s":"")),
-        pendingDAR.map(t=>{const sec=SECTIONS[t.sk];const dj=Math.ceil((new Date(t.darEnd)-new Date())/864e5);return React.createElement("div",{key:t.id,style:{display:"flex",justifyContent:"space-between",padding:"4px 8px",fontSize:11}},
-          React.createElement("span",null,React.createElement("span",{style:{fontWeight:700,color:sec?.color}},sec?.name+" — "+t.pid),React.createElement("span",{style:{color:stx}}," "+t.prod)),
-          React.createElement("span",{style:{fontWeight:700,color:"#EA580C"}},dj+"j restant"+(dj>1?"s":"")))}))),
+      // Résumé sections
+      secSummary.length>0&&React.createElement("div",{style:{marginBottom:14}},
+        React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8,color:ctx}},"📊 Par section"),
+        secSummary.map(s=>React.createElement("div",{key:s.sk,className:"card",style:{background:cbg,padding:"10px 12px",marginBottom:6,border:"1px solid "+bd,borderLeft:"4px solid "+s.sec.color,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:13,color:s.sec.color}},s.sec.name),React.createElement("span",{style:{fontSize:10,color:stx,marginLeft:6}},s.sec.area)),
+          React.createElement("div",{style:{display:"flex",gap:3}},
+            s.g>0&&React.createElement("span",{className:"tag",style:{background:"#FEE2E2",color:"#991B1B"}},s.g+"🔴"),
+            s.m>0&&React.createElement("span",{className:"tag",style:{background:"#FED7AA",color:"#9A3412"}},s.m+"🟠"),
+            s.f>0&&React.createElement("span",{className:"tag",style:{background:"#FEF9C3",color:"#854D0E"}},s.f+"🟡"))))),
 
-    // RESUME PAR SECTION
-    secSummary.length>0&&React.createElement("div",{style:{marginBottom:14}},
-      React.createElement("h3",{style:{fontSize:14,fontWeight:800,marginBottom:8}},"📊 Résumé par section"),
-      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
-        secSummary.map(s=>React.createElement("div",{key:s.sk,style:{background:cbg,borderRadius:12,padding:10,border:"1px solid "+bd,borderLeft:"4px solid "+s.sec.color,display:"flex",justifyContent:"space-between",alignItems:"center"}},
-          React.createElement("div",null,
-            React.createElement("span",{style:{fontWeight:700,fontSize:13,color:s.sec.color}},s.sec.name),
-            React.createElement("span",{style:{fontSize:10,color:stx,marginLeft:6}},s.sec.fullName+" • "+s.sec.area)),
-          React.createElement("div",{style:{display:"flex",gap:4}},
-            s.g>0&&React.createElement("span",{className:"blink",style:{background:"#FEE2E2",color:"#991B1B",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:8}},s.g+"🔴"),
-            s.m>0&&React.createElement("span",{style:{background:"#FED7AA",color:"#9A3412",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:8}},s.m+"🟠"),
-            s.f>0&&React.createElement("span",{style:{background:"#FEF9C3",color:"#854D0E",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:8}},s.f+"🟡"),
-            React.createElement("span",{style:{background:"#DBEAFE",color:"#1D4ED8",fontSize:9,fontWeight:700,padding:"3px 8px",borderRadius:8}},s.tc+"💊")))))),
+      // Observations récentes
+      React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},todayObs.length>0?"📋 Aujourd'hui ("+todayObs.length+")":"📋 Cette semaine"),
+      ((todayObs.length?todayObs:weekObs.slice(0,8)).length===0?
+        React.createElement("div",{style:{textAlign:"center",padding:40,background:cbg,borderRadius:16,border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:40}},"✅"),React.createElement("p",{style:{fontWeight:600,color:stx,marginTop:8}},"Aucune observation récente")):
+        (todayObs.length?todayObs:weekObs.slice(0,8)).map(r=>{const sec=SECTIONS[r.sk];const lt=treatments.filter(t=>t.obsId===r.id);
+          return React.createElement("div",{key:r.id,className:"card",style:{background:cbg,border:"1px solid "+bd,borderLeft:"4px solid "+(sec?.color||"#888"),padding:14,marginBottom:8}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}},
+              React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),React.createElement("span",{className:"tag",style:{background:(SC[r.sev]||{}).bg,color:(SC[r.sev]||{}).text,marginLeft:6}},r.sev),r.res&&React.createElement("span",{className:"tag",style:{background:"#DCFCE7",color:"#166534",marginLeft:4}},"✓")),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>togObs(r.id),style:{background:"none",border:"none",fontSize:14,cursor:"pointer"}},r.res?"↩️":"✅"),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer"}},"🗑️"))),
+            React.createElement("div",{style:{fontSize:14,fontWeight:600,marginBottom:2}},r.dis),
+            React.createElement("div",{style:{display:"flex",gap:10,fontSize:11,color:stx,flexWrap:"wrap"}},React.createElement("span",null,"📅 "+fD(r.date)+" "+fH(r.at)),r.zone&&React.createElement("span",null,"📐 "+r.zone+"%")),
+            r.obsText&&React.createElement("div",{style:{fontSize:12,marginTop:4,padding:"6px 10px",background:dark?"#0F172A":"#F8FAFC",borderRadius:8,borderLeft:"3px solid "+(sec?.color||"#888")}},"📝 "+r.obsText),
+            React.createElement(PhotoGrid,{photos:r.photos||[],dark}),
+            lt.length>0&&React.createElement("div",{style:{marginTop:8,padding:"8px 10px",background:dark?"#1A1028":"#F5F3FF",borderRadius:10,border:"1px solid "+(dark?"#2D1F5E":"#DDD6FE")}},
+              React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#7C3AED",marginBottom:3}},"💊 "+lt.length+" traitement"+(lt.length>1?"s":"")),
+              lt.map(t=>React.createElement("div",{key:t.id,style:{fontSize:11,color:stx}},t.prod+" — "+t.dose))))}))
+    ),
 
-    // OBSERVATIONS DU JOUR / RECENTES
-    React.createElement("div",{style:{marginBottom:14}},
-      React.createElement("h3",{style:{fontSize:14,fontWeight:800,marginBottom:8}},todayObs.length>0?"📋 Observations d'aujourd'hui ("+todayObs.length+")":"📋 Observations récentes"),
-      (todayObs.length>0?todayObs:weekObs.slice(0,10)).length===0?
-        React.createElement("div",{style:{textAlign:"center",padding:30,color:stx,background:cbg,borderRadius:12,border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:36}},"✅"),React.createElement("p",{style:{fontWeight:600,marginTop:6}},"Aucune observation récente")):
-      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
-        (todayObs.length>0?todayObs:weekObs.slice(0,10)).map(r=>React.createElement(ObsCard,{key:r.id,r,treatments,sec:SECTIONS[r.sk],dark,cbg,ctx,stx,bd,showSection:true,compact:false}))))
+    // === TRAITEMENT TAB ===
+    dashTab==="trt"&&React.createElement("div",{style:{animation:"fadeIn 0.3s"}},
+      // DAR actifs
+      pendingDAR.length>0&&React.createElement("div",{className:"card",style:{background:dark?"#1A1028":"#F5F3FF",border:"1px solid "+(dark?"#2D1F5E":"#DDD6FE"),marginBottom:12,padding:14}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#7C3AED",marginBottom:8}},"⏳ "+pendingDAR.length+" DAR actif"+(pendingDAR.length>1?"s":"")),
+        pendingDAR.map(t=>{const sec=SECTIONS[t.sk];const dj=Math.ceil((new Date(t.darEnd)-new Date())/864e5);return React.createElement("div",{key:t.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",marginBottom:4,background:cbg,borderRadius:10,border:"1px solid "+bd}},
+          React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+t.pid),React.createElement("span",{style:{fontSize:11,color:stx,marginLeft:6}},t.prod+" "+t.dose)),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"tag blink",style:{background:"#FFF7ED",color:"#C2410C"}},dj+"j"),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))delTrt(t.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer"}},"🗑️")))})),
+
+      // Traitements récents
+      React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},todayTrt.length>0?"💊 Aujourd'hui ("+todayTrt.length+")":"💊 Cette semaine"+(recentTrt.length?" ("+recentTrt.length+")":"")),
+      ((todayTrt.length?todayTrt:recentTrt.slice(0,8)).length===0?
+        React.createElement("div",{style:{textAlign:"center",padding:40,background:cbg,borderRadius:16,border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:40}},"💊"),React.createElement("p",{style:{fontWeight:600,color:stx,marginTop:8}},"Aucun traitement récent")):
+        (todayTrt.length?todayTrt:recentTrt.slice(0,8)).map(r=>{const sec=SECTIONS[r.sk];const lo=observations.find(o=>o.id===r.obsId);const da=r.darEnd&&new Date(r.darEnd)>new Date();const dd=da?Math.ceil((new Date(r.darEnd)-new Date())/864e5):0;
+          return React.createElement("div",{key:r.id,className:"card",style:{background:cbg,border:"1px solid "+bd,borderLeft:"4px solid "+(da?"#F97316":"#8B5CF6"),padding:14,marginBottom:8}},
+            React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}},
+              React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),da&&React.createElement("span",{className:"tag blink",style:{background:"#FFF7ED",color:"#C2410C",marginLeft:6}},"⏳ "+dd+"j")),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))delTrt(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer"}},"🗑️"))),
+            React.createElement("div",{style:{fontSize:14,fontWeight:700,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),
+            React.createElement("div",{style:{fontSize:12,color:stx}},"📏 "+r.dose+" • 📅 "+fD(r.tdate)),
+            r.dar&&React.createElement("div",{style:{fontSize:11,color:"#EA580C",marginTop:2}},"⏳ DAR "+r.dar+"j"+(r.darEnd?" → fin "+fD(r.darEnd):"")),
+            lo&&React.createElement("div",{style:{marginTop:6,padding:"6px 8px",background:dark?"#1C1917":"#FEF9C3",borderRadius:8,fontSize:10,fontWeight:600,color:"#92400E"}},"🔗 "+lo.dis+" ("+lo.sev+")"))}))),
+
+      // Résumé par section (traitements)
+      secSummary.filter(s=>s.tc>0).length>0&&React.createElement("div",{style:{marginTop:6}},
+        React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},"📊 Traitements par section"),
+        secSummary.filter(s=>s.tc>0).map(s=>React.createElement("div",{key:s.sk,className:"card",style:{background:cbg,padding:"10px 12px",marginBottom:6,border:"1px solid "+bd,borderLeft:"4px solid "+s.sec.color,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+          React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,color:s.sec.color}},s.sec.name),React.createElement("span",{style:{fontSize:10,color:stx,marginLeft:6}},s.sec.area)),
+          React.createElement("span",{className:"tag",style:{background:"#EDE9FE",color:"#6D28D9"}},s.tc+" 💊"))))
+    )
   );
 }
 
 // ===== SURVEILLANCE MAP =====
 function SurvMap({bg,cbg,ctx,stx,bd,dark,observations,treatments,getPS,getAC,onSelect,search,setSearch,filter,setFilter}){
   const[exp,setExp]=useState(null);const ao=observations.filter(r=>!r.res);const gt=ao.filter(r=>r.sev==="Grave").length;const totalP=Object.values(SECTIONS).reduce((s,sec)=>s+sec.parcelles.length,0);
-  const groups=[{title:"🫐 Myrtille Hors Sol (HLS)",keys:["AG1","AG2","AG3a","AG3b"],type:"hls"},{title:"🫐 Myrtille Sol",keys:["AG4","AG5","AG6"],type:"sol"},{title:"🍓 Fraise",keys:["S1","S2","S3"],type:"fraise"}];
-  const filteredGroups=filter==="all"?groups:groups.filter(g=>g.type===filter);
-  const getSS=key=>{const sec=SECTIONS[key];let a=0,g=0;sec.parcelles.forEach(p=>{const r=observations.filter(r=>r.sk===key&&r.pid===p.id&&!r.res);a+=r.length;g+=r.filter(r=>r.sev==="Grave").length});return{a,g}};
-  const dot=st=>React.createElement("span",{style:{display:"inline-block",width:8,height:8,borderRadius:"50%",background:stClr[st]||stClr.clean,marginRight:4}});
-  const searchRes=useMemo(()=>{if(!search.trim())return null;const q=search.toLowerCase();const res=[];Object.entries(SECTIONS).forEach(([sk,sec])=>{sec.parcelles.forEach(p=>{if(p.id.toLowerCase().includes(q)||sec.name.toLowerCase().includes(q))res.push({sk,p,sec})})});return res},[search]);
-  return React.createElement("div",null,
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}},
-      [{l:"Parcelles",v:totalP,i:"🌱",c:"#16A34A",b:dark?"#0D2818":"#F0FDF4"},{l:"Cas Actifs",v:ao.length,i:"⚠️",c:"#CA8A04",b:dark?"#2A2000":"#FEF9C3"},{l:"Graves",v:gt,i:"🔴",c:"#DC2626",b:dark?"#2A0000":"#FEE2E2"}].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:12,padding:"10px 8px",textAlign:"center"}},React.createElement("div",{style:{fontSize:18}},c.i),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:c.c}},c.v),React.createElement("div",{style:{fontSize:9,color:c.c,fontWeight:600}},c.l)))),
-    React.createElement("div",{style:{position:"relative",marginBottom:8}},React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),placeholder:"🔍 Rechercher parcelle...",style:{width:"100%",padding:"10px 14px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx}}),search&&React.createElement("button",{onClick:()=>setSearch(""),style:{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",border:"none",background:"transparent",fontSize:16,cursor:"pointer",color:stx}},"✕")),
-    searchRes&&searchRes.length>0&&React.createElement("div",{style:{background:cbg,border:"1px solid "+bd,borderRadius:12,padding:8,marginBottom:10,maxHeight:180,overflow:"auto"}},searchRes.map((r,i)=>{const st=getPS(r.sk,r.p.id);const ac=getAC(r.sk,r.p.id);return React.createElement("div",{key:i,onClick:()=>onSelect(r.sk,r.p),style:{display:"flex",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,cursor:"pointer",marginBottom:3,background:dark?"#252525":"#F9FAFB",border:"1px solid "+bd}},React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:13,color:r.sec.color}},r.sec.name+" — "+r.p.id),React.createElement("span",{style:{fontSize:11,color:stx,marginLeft:8}},r.p.area)),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},dot(st),ac>0&&React.createElement("span",{style:{background:"#FEF3C7",color:"#92400E",fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:8}},ac)))})),
-    React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}},
-      [{k:"all",l:"Tout"},{k:"hls",l:"🫐 HLS"},{k:"sol",l:"🫐 Sol"},{k:"fraise",l:"🍓 Fraise"}].map(f=>React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),style:{padding:"5px 10px",borderRadius:16,border:filter===f.k?"2px solid #2D6A4F":"1px solid "+bd,background:filter===f.k?(dark?"#1A3A2A":"#F0FDF4"):cbg,color:filter===f.k?(dark?"#6EE7B7":"#2D6A4F"):stx,fontSize:10,fontWeight:600,cursor:"pointer"}},f.l))),
-    filteredGroups.map((grp,gi)=>React.createElement("div",{key:gi,style:{marginBottom:14}},
-      React.createElement("h3",{style:{fontSize:13,fontWeight:700,color:ctx,marginBottom:6,padding:"7px 10px",background:cbg,borderRadius:10,border:"1px solid "+bd}},grp.title),
-      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}},grp.keys.map(key=>{const sec=SECTIONS[key];const ss=getSS(key);const isExp=exp===key;
-        return React.createElement("div",{key,style:{gridColumn:isExp?"1/-1":"auto"}},React.createElement("div",{onClick:()=>setExp(isExp?null:key),style:{background:cbg,borderRadius:12,border:"2px solid "+sec.color+"22",overflow:"hidden",cursor:"pointer"}},
-          React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"DD)",padding:"9px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:13}},sec.name),React.createElement("span",{style:{color:"rgba(255,255,255,0.8)",fontSize:10,marginLeft:5}},"("+sec.label+")")),React.createElement("span",{style:{color:"#fff",fontSize:10,fontWeight:600}},sec.area)),
-          React.createElement("div",{style:{padding:"6px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{fontSize:10,color:stx}},sec.parcelles.length+" parc. • "+sec.date),React.createElement("div",{style:{display:"flex",gap:4}},ss.a>0&&React.createElement("span",{style:{background:"#FEF3C7",color:"#92400E",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},ss.a+" cas"),ss.g>0&&React.createElement("span",{className:"blink",style:{background:"#FEE2E2",color:"#991B1B",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},ss.g+" grave"),ss.a===0&&React.createElement("span",{style:{background:"#DCFCE7",color:"#166534",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},"✓")))),
-        isExp&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5,marginTop:6,animation:"fadeIn 0.3s"}},sec.parcelles.map(p=>{const st=getPS(key,p.id);const ac=getAC(key,p.id);
-          return React.createElement("div",{key:p.id,onClick:e=>{e.stopPropagation();onSelect(key,p)},className:st==="grave"?"blink":"",style:{background:dark?(st==="grave"?"#2A0000":"#1E1E1E"):stBg[st],border:"2px solid "+stBdr[st],borderRadius:10,padding:"9px 6px",textAlign:"center",cursor:"pointer",position:"relative"}},
-            ac>0&&React.createElement("div",{style:{position:"absolute",top:-4,right:-4,background:"#EF4444",color:"#fff",fontSize:8,fontWeight:800,width:16,height:16,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}},ac),
-            React.createElement("div",{style:{display:"flex",justifyContent:"center",alignItems:"center",gap:3}},dot(st),React.createElement("span",{style:{fontWeight:700,fontSize:12,color:ctx}},p.id)),React.createElement("div",{style:{fontSize:9,color:stx,marginTop:2}},p.area))})))})))),
-    React.createElement("div",{style:{background:cbg,borderRadius:10,padding:8,marginTop:8,border:"1px solid "+bd}},React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
-      [{l:"Sain",c:"#22C55E"},{l:"Faible",c:"#EAB308"},{l:"Moyen",c:"#F97316"},{l:"Grave",c:"#EF4444"},{l:"Résolu",c:"#94A3B8"}].map(x=>React.createElement("div",{key:x.l,style:{display:"flex",alignItems:"center",gap:3}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:x.c}}),React.createElement("span",{style:{fontSize:9,color:stx}},x.l))))));
-}
-
-// TRAITEMENT MAP
-function TrtMap({bg,cbg,ctx,stx,bd,dark,observations,treatments,getTrtCount,getLastTrt,hasPendingDAR,getObsPS,getObsAC,onSelect,search,setSearch,filter,setFilter}){
-  const[exp,setExp]=useState(null);const totalTrt=treatments.length;const pendingDAR=treatments.filter(t=>t.darEnd&&new Date(t.darEnd)>new Date()).length;const untreated=observations.filter(o=>!o.res&&!treatments.some(t=>t.obsId===o.id)).length;
   const groups=[{title:"🫐 Myrtille HLS",keys:["AG1","AG2","AG3a","AG3b"],type:"hls"},{title:"🫐 Myrtille Sol",keys:["AG4","AG5","AG6"],type:"sol"},{title:"🍓 Fraise",keys:["S1","S2","S3"],type:"fraise"}];
-  const filteredGroups=filter==="all"?groups:groups.filter(g=>g.type===filter);
-  const getTrtSS=key=>{const sec=SECTIONS[key];let tc=0,dar=0;sec.parcelles.forEach(p=>{tc+=treatments.filter(t=>t.sk===key&&t.pid===p.id).length;dar+=treatments.filter(t=>t.sk===key&&t.pid===p.id&&t.darEnd&&new Date(t.darEnd)>new Date()).length});return{tc,dar}};
-  const trtClr={clean:"#22C55E",treated:"#3B82F6",needs:"#EF4444",watch:"#EAB308",dar:"#F97316"};
-  const trtBg2={clean:"#fff",treated:dark?"#0A1A2E":"#EFF6FF",needs:dark?"#2A0000":"#FEF2F2",watch:dark?"#2A2000":"#FFFBEB",dar:dark?"#2A1500":"#FFF7ED"};
-  const trtBdr2={clean:"#E5E7EB",treated:"#93C5FD",needs:"#F87171",watch:"#FDE047",dar:"#FB923C"};
-  const getPSt=(sk,pid)=>{const hd=hasPendingDAR(sk,pid);const os=getObsPS(sk,pid);const tc=getTrtCount(sk,pid);if(hd)return"dar";if(os==="grave"||os==="moyen")return tc>0?"treated":"needs";if(os==="faible")return tc>0?"treated":"watch";return tc>0?"treated":"clean"};
+  const fGroups=filter==="all"?groups:groups.filter(g=>g.type===filter);
+  const getSS=key=>{const sec=SECTIONS[key];let a=0,g=0;sec.parcelles.forEach(p=>{const r=observations.filter(r=>r.sk===key&&r.pid===p.id&&!r.res);a+=r.length;g+=r.filter(r=>r.sev==="Grave").length});return{a,g}};
+  const dot=st=>React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:stClr[st]||stClr.clean,display:"inline-block"}});
   return React.createElement("div",null,
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}},
-      [{l:"Traitements",v:totalTrt,i:"💊",c:"#7C3AED",b:dark?"#1A0028":"#F3E8FF"},{l:"Non traités",v:untreated,i:"⚠️",c:"#DC2626",b:dark?"#2A0000":"#FEE2E2"},{l:"DAR actif",v:pendingDAR,i:"⏳",c:"#EA580C",b:dark?"#2A1500":"#FFF7ED"}].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:12,padding:"10px 8px",textAlign:"center"}},React.createElement("div",{style:{fontSize:18}},c.i),React.createElement("div",{style:{fontSize:20,fontWeight:800,color:c.c}},c.v),React.createElement("div",{style:{fontSize:9,color:c.c,fontWeight:600}},c.l)))),
-    React.createElement("div",{style:{position:"relative",marginBottom:8}},React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),placeholder:"🔍 Rechercher...",style:{width:"100%",padding:"10px 14px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx}}),search&&React.createElement("button",{onClick:()=>setSearch(""),style:{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",border:"none",background:"transparent",fontSize:16,cursor:"pointer",color:stx}},"✕")),
-    React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}},
-      [{k:"all",l:"Tout"},{k:"hls",l:"🫐 HLS"},{k:"sol",l:"🫐 Sol"},{k:"fraise",l:"🍓 Fraise"}].map(f=>React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),style:{padding:"5px 10px",borderRadius:16,border:filter===f.k?"2px solid #7C3AED":"1px solid "+bd,background:filter===f.k?(dark?"#1A0028":"#F3E8FF"):cbg,color:filter===f.k?(dark?"#C4B5FD":"#6D28D9"):stx,fontSize:10,fontWeight:600,cursor:"pointer"}},f.l))),
-    filteredGroups.map((grp,gi)=>React.createElement("div",{key:gi,style:{marginBottom:14}},
-      React.createElement("h3",{style:{fontSize:13,fontWeight:700,color:ctx,marginBottom:6,padding:"7px 10px",background:cbg,borderRadius:10,border:"1px solid "+bd}},grp.title),
-      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}},grp.keys.map(key=>{const sec=SECTIONS[key];const ss=getTrtSS(key);const isExp=exp===key;
-        return React.createElement("div",{key,style:{gridColumn:isExp?"1/-1":"auto"}},React.createElement("div",{onClick:()=>setExp(isExp?null:key),style:{background:cbg,borderRadius:12,border:"2px solid "+sec.color+"22",overflow:"hidden",cursor:"pointer"}},
-          React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"DD)",padding:"9px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("div",null,React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:13}},sec.name),React.createElement("span",{style:{color:"rgba(255,255,255,0.8)",fontSize:10,marginLeft:5}},"("+sec.label+")")),React.createElement("span",{style:{color:"#fff",fontSize:10,fontWeight:600}},sec.area)),
-          React.createElement("div",{style:{padding:"6px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{fontSize:10,color:stx}},sec.parcelles.length+" parc."),React.createElement("div",{style:{display:"flex",gap:4}},ss.tc>0&&React.createElement("span",{style:{background:"#DBEAFE",color:"#1D4ED8",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},ss.tc+" trt"),ss.dar>0&&React.createElement("span",{className:"blink",style:{background:"#FFF7ED",color:"#C2410C",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},"⏳"+ss.dar)))),
-        isExp&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5,marginTop:6,animation:"fadeIn 0.3s"}},sec.parcelles.map(p=>{const ps=getPSt(key,p.id);const tc=getTrtCount(key,p.id);const lt=getLastTrt(key,p.id);
-          return React.createElement("div",{key:p.id,onClick:e=>{e.stopPropagation();onSelect(key,p)},className:ps==="dar"?"blink":"",style:{background:dark?"#1E1E1E":trtBg2[ps],border:"2px solid "+trtBdr2[ps],borderRadius:10,padding:"9px 6px",textAlign:"center",cursor:"pointer",position:"relative"}},
-            tc>0&&React.createElement("div",{style:{position:"absolute",top:-4,right:-4,background:"#3B82F6",color:"#fff",fontSize:8,fontWeight:800,width:16,height:16,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}},tc),
-            React.createElement("div",{style:{display:"flex",justifyContent:"center",alignItems:"center",gap:3}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:trtClr[ps]}}),React.createElement("span",{style:{fontWeight:700,fontSize:12,color:ctx}},p.id)),React.createElement("div",{style:{fontSize:8,color:stx,marginTop:2}},lt?fD(lt.tdate):p.area))})))})))),
-    React.createElement("div",{style:{background:cbg,borderRadius:10,padding:8,marginTop:8,border:"1px solid "+bd}},React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
-      [{l:"Sain",c:"#22C55E"},{l:"Traité",c:"#3B82F6"},{l:"À surveiller",c:"#EAB308"},{l:"Besoin trt",c:"#EF4444"},{l:"DAR",c:"#F97316"}].map(x=>React.createElement("div",{key:x.l,style:{display:"flex",alignItems:"center",gap:3}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:x.c}}),React.createElement("span",{style:{fontSize:9,color:stx}},x.l))))));
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}},
+      [{l:"Parcelles",v:totalP,i:"🌱",c:"#10B981",b:dark?"#0D2818":"#ECFDF5"},{l:"Actifs",v:ao.length,i:"⚠️",c:"#EAB308",b:dark?"#1C1917":"#FFFBEB"},{l:"Graves",v:gt,i:"🔴",c:"#EF4444",b:dark?"#1C1017":"#FEF2F2"}].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:14,padding:"10px 8px",textAlign:"center",border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:16}},c.i),React.createElement("div",{style:{fontSize:22,fontWeight:800,color:c.c}},c.v),React.createElement("div",{style:{fontSize:9,color:c.c,fontWeight:600}},c.l)))),
+    React.createElement("div",{style:{position:"relative",marginBottom:10}},React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),placeholder:"Rechercher parcelle...",style:{width:"100%",padding:"12px 16px 12px 36px",borderRadius:14,border:"1.5px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx}}),React.createElement("span",{style:{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14}},"🔍"),search&&React.createElement("button",{onClick:()=>setSearch(""),style:{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",border:"none",background:"transparent",fontSize:16,cursor:"pointer",color:stx}},"✕")),
+    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:10}},
+      [{k:"all",l:"Tout"},{k:"hls",l:"HLS"},{k:"sol",l:"Sol"},{k:"fraise",l:"Fraise"}].map(f=>React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),className:"btn "+(filter===f.k?"btn-primary":"btn-ghost"),style:{padding:"7px 14px",fontSize:11}},f.l))),
+    fGroups.map((grp,gi)=>React.createElement("div",{key:gi,style:{marginBottom:14}},
+      React.createElement("h3",{style:{fontSize:13,fontWeight:700,marginBottom:8,color:ctx}},grp.title),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}},grp.keys.map(key=>{const sec=SECTIONS[key];const ss=getSS(key);const isExp=exp===key;
+        return React.createElement("div",{key,style:{gridColumn:isExp?"1/-1":"auto"}},React.createElement("div",{onClick:()=>setExp(isExp?null:key),className:"card",style:{background:cbg,border:"1.5px solid "+(isExp?sec.color+"66":bd),cursor:"pointer",boxShadow:isExp?"0 4px 20px "+sec.color+"15":"0 1px 3px rgba(0,0,0,0.04)"}},
+          React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"CC)",padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{color:"#fff",fontWeight:700,fontSize:14}},sec.name+" ("+sec.label+")"),React.createElement("span",{style:{color:"rgba(255,255,255,0.8)",fontSize:10,fontWeight:600}},sec.area)),
+          React.createElement("div",{style:{padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{fontSize:10,color:stx}},sec.parcelles.length+" parc."),React.createElement("div",{style:{display:"flex",gap:4}},ss.a>0&&React.createElement("span",{className:"tag",style:{background:"#FEF9C3",color:"#854D0E"}},ss.a),ss.g>0&&React.createElement("span",{className:"tag blink",style:{background:"#FEE2E2",color:"#991B1B"}},ss.g+"🔴"),ss.a===0&&React.createElement("span",{className:"tag",style:{background:"#DCFCE7",color:"#166534"}},"✓")))),
+        isExp&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:8,animation:"fadeIn 0.2s"}},sec.parcelles.map(p=>{const st=getPS(key,p.id);const ac=getAC(key,p.id);
+          return React.createElement("div",{key:p.id,onClick:e=>{e.stopPropagation();onSelect(key,p)},className:st==="grave"?"blink":"",style:{background:dark?(st==="grave"?"#2A1015":"#1E293B"):stBg[st],border:"2px solid "+stBdr[st],borderRadius:12,padding:"10px 6px",textAlign:"center",cursor:"pointer",position:"relative"}},
+            ac>0&&React.createElement("div",{style:{position:"absolute",top:-5,right:-5,background:"#EF4444",color:"#fff",fontSize:8,fontWeight:800,width:18,height:18,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid "+cbg}},ac),
+            React.createElement("div",{style:{display:"flex",justifyContent:"center",alignItems:"center",gap:4}},dot(st),React.createElement("span",{style:{fontWeight:700,fontSize:13}},p.id)),React.createElement("div",{style:{fontSize:9,color:stx,marginTop:2}},p.area))})))})))),
+    React.createElement("div",{style:{background:cbg,borderRadius:14,padding:10,marginTop:8,border:"1px solid "+bd}},React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:10}},
+      [{l:"Sain",c:"#22C55E"},{l:"Faible",c:"#EAB308"},{l:"Moyen",c:"#F97316"},{l:"Grave",c:"#EF4444"},{l:"Résolu",c:"#94A3B8"}].map(x=>React.createElement("div",{key:x.l,style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:x.c}}),React.createElement("span",{style:{fontSize:10,color:stx}},x.l))))));
 }
 
-// ===== UNIFIED PARCEL MODAL =====
-function ParcelModal({sec,sk,par,mode,observations,allObs,treatments,onClose,onAddObs,onDelObs,onTogObs,onAddTrt,onDelTrt,setMode,dark,cbg,ctx,stx,bd}){
-  const[tab,setTab]=useState("list");
-  const diseases=sec.type==="fraise"?DIS_F:DIS_M;
-  const activeObs=observations.filter(r=>!r.res);
-  const color=mode==="surv"?"#D97706":"#7C3AED";
-  const gradient=mode==="surv"?"linear-gradient(135deg,#D97706,#F59E0B)":"linear-gradient(135deg,#7C3AED,#8B5CF6)";
+// ===== TRAITEMENT MAP =====
+function TrtMap({bg,cbg,ctx,stx,bd,dark,observations,treatments,onSelect,search,setSearch,filter,setFilter}){
+  const[exp,setExp]=useState(null);
+  const groups=[{title:"🫐 Myrtille HLS",keys:["AG1","AG2","AG3a","AG3b"],type:"hls"},{title:"🫐 Myrtille Sol",keys:["AG4","AG5","AG6"],type:"sol"},{title:"🍓 Fraise",keys:["S1","S2","S3"],type:"fraise"}];
+  const fGroups=filter==="all"?groups:groups.filter(g=>g.type===filter);
+  const getTrtSS=key=>{const sec=SECTIONS[key];let tc=0;sec.parcelles.forEach(p=>{tc+=treatments.filter(t=>t.sk===key&&t.pid===p.id).length});return tc};
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}},
+      [{l:"Total trt",v:treatments.length,i:"💊",c:"#8B5CF6",b:dark?"#1A1028":"#F5F3FF"},{l:"Non traités",v:observations.filter(o=>!o.res&&!treatments.some(t=>t.obsId===o.id)).length,i:"⚠️",c:"#EF4444",b:dark?"#1C1017":"#FEF2F2"},{l:"DAR actif",v:treatments.filter(t=>t.darEnd&&new Date(t.darEnd)>new Date()).length,i:"⏳",c:"#EA580C",b:dark?"#1C1510":"#FFF7ED"}].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:14,padding:"10px 8px",textAlign:"center",border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:16}},c.i),React.createElement("div",{style:{fontSize:22,fontWeight:800,color:c.c}},c.v),React.createElement("div",{style:{fontSize:9,color:c.c,fontWeight:600}},c.l)))),
+    React.createElement("div",{style:{position:"relative",marginBottom:10}},React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),placeholder:"Rechercher...",style:{width:"100%",padding:"12px 16px 12px 36px",borderRadius:14,border:"1.5px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx}}),React.createElement("span",{style:{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14}},"🔍")),
+    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:10}},
+      [{k:"all",l:"Tout"},{k:"hls",l:"HLS"},{k:"sol",l:"Sol"},{k:"fraise",l:"Fraise"}].map(f=>React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),className:"btn "+(filter===f.k?"btn-trt":"btn-ghost"),style:{padding:"7px 14px",fontSize:11}},f.l))),
+    fGroups.map((grp,gi)=>React.createElement("div",{key:gi,style:{marginBottom:14}},
+      React.createElement("h3",{style:{fontSize:13,fontWeight:700,marginBottom:8}},grp.title),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}},grp.keys.map(key=>{const sec=SECTIONS[key];const tc=getTrtSS(key);const isExp=exp===key;
+        return React.createElement("div",{key,style:{gridColumn:isExp?"1/-1":"auto"}},React.createElement("div",{onClick:()=>setExp(isExp?null:key),className:"card",style:{background:cbg,border:"1.5px solid "+(isExp?sec.color+"66":bd),cursor:"pointer"}},
+          React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"CC)",padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}},React.createElement("span",{style:{color:"#fff",fontWeight:700,fontSize:14}},sec.name),React.createElement("span",{style:{color:"rgba(255,255,255,0.8)",fontSize:10}},sec.area)),
+          React.createElement("div",{style:{padding:"8px 12px",display:"flex",justifyContent:"space-between"}},React.createElement("span",{style:{fontSize:10,color:stx}},sec.parcelles.length+" parc."),tc>0&&React.createElement("span",{className:"tag",style:{background:"#EDE9FE",color:"#6D28D9"}},tc+" 💊"))),
+        isExp&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:8,animation:"fadeIn 0.2s"}},sec.parcelles.map(p=>{const ptc=treatments.filter(t=>t.sk===key&&t.pid===p.id).length;const hasDAR=treatments.some(t=>t.sk===key&&t.pid===p.id&&t.darEnd&&new Date(t.darEnd)>new Date());
+          return React.createElement("div",{key:p.id,onClick:e=>{e.stopPropagation();onSelect(key,p)},className:hasDAR?"blink":"",style:{background:cbg,border:"2px solid "+(hasDAR?"#FB923C":ptc?"#93C5FD":bd),borderRadius:12,padding:"10px 6px",textAlign:"center",cursor:"pointer",position:"relative"}},
+            ptc>0&&React.createElement("div",{style:{position:"absolute",top:-5,right:-5,background:"#8B5CF6",color:"#fff",fontSize:8,fontWeight:800,width:18,height:18,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid "+cbg}},ptc),
+            React.createElement("span",{style:{fontWeight:700,fontSize:13}},p.id),React.createElement("div",{style:{fontSize:9,color:stx,marginTop:2}},p.area))})))})))));}
 
+// ===== PARCEL MODAL =====
+function ParcelModal({sec,sk,par,mode,observations,treatments,onClose,onAddObs,onDelObs,onTogObs,onAddTrt,onDelTrt,setMode,dark,cbg,ctx,stx,bd}){
+  const[tab,setTab]=useState("list");const diseases=sec.type==="fraise"?DIS_F:DIS_M;const activeObs=observations.filter(r=>!r.res);const color=mode==="surv"?"#D97706":"#7C3AED";const gradient=mode==="surv"?"linear-gradient(135deg,#F59E0B,#D97706)":"linear-gradient(135deg,#8B5CF6,#7C3AED)";
   return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:1000,animation:"fadeIn 0.2s"}},
-    React.createElement("div",{onClick:onClose,style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}}),
-    React.createElement("div",{style:{position:"absolute",bottom:0,left:0,right:0,maxHeight:"92vh",background:cbg,borderRadius:"20px 20px 0 0",overflow:"hidden",animation:"slideUp 0.3s",display:"flex",flexDirection:"column"}},
-      React.createElement("div",{style:{background:gradient,padding:"14px 18px",flexShrink:0}},
+    React.createElement("div",{onClick:onClose,style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(6px)"}}),
+    React.createElement("div",{style:{position:"absolute",bottom:0,left:0,right:0,maxHeight:"92vh",background:cbg,borderRadius:"24px 24px 0 0",overflow:"hidden",animation:"slideUp 0.3s",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{background:gradient,padding:"16px 20px",flexShrink:0}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},
-          React.createElement("div",null,React.createElement("h2",{style:{color:"#fff",fontSize:20,fontWeight:800,margin:0}},(mode==="surv"?"🔍 ":"💊 ")+sec.name+" — "+par.id),React.createElement("p",{style:{color:"rgba(255,255,255,0.85)",fontSize:12,margin:"2px 0 0"}},sec.fullName+" • "+par.area)),
-          React.createElement("button",{onClick:onClose,style:{background:"rgba(255,255,255,0.2)",border:"none",color:"#fff",width:30,height:30,borderRadius:10,fontSize:16,cursor:"pointer"}},"✕")),
-        React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
-          React.createElement("span",{style:{background:"rgba(255,255,255,0.2)",color:"#fff",padding:"3px 8px",borderRadius:8,fontSize:10,fontWeight:600}},activeObs.length+" cas actif"+(activeObs.length>1?"s":"")),
-          React.createElement("span",{style:{background:"rgba(255,255,255,0.2)",color:"#fff",padding:"3px 8px",borderRadius:8,fontSize:10,fontWeight:600}},treatments.length+" trt"),
-          React.createElement("button",{onClick:()=>{setMode(mode==="surv"?"trt":"surv");setTab("list")},style:{marginLeft:"auto",background:"rgba(255,255,255,0.25)",border:"none",color:"#fff",padding:"3px 10px",borderRadius:8,fontSize:10,fontWeight:600,cursor:"pointer"}},mode==="surv"?"💊 Traitements →":"🔍 Surveillance →"))),
-      // Tabs
-      mode==="surv"?React.createElement("div",{style:{display:"flex",borderBottom:"1px solid "+bd,flexShrink:0}},
-        [{k:"list",l:"🦠 Observations ("+observations.length+")"},{k:"add",l:"➕ Observer"},{k:"history",l:"📜 Historique"}].map(t=>React.createElement("button",{key:t.k,onClick:()=>setTab(t.k),style:{flex:1,padding:10,border:"none",borderBottom:tab===t.k?"3px solid "+color:"3px solid transparent",background:tab===t.k?color+"11":"transparent",color:tab===t.k?color:stx,fontWeight:tab===t.k?700:500,fontSize:11,cursor:"pointer"}},t.l))):
-      React.createElement("div",{style:{display:"flex",borderBottom:"1px solid "+bd,flexShrink:0}},
-        [{k:"list",l:"💊 Traitements ("+treatments.length+")"},{k:"add",l:"➕ Traiter"},{k:"history",l:"📜 Historique"}].map(t=>React.createElement("button",{key:t.k,onClick:()=>setTab(t.k),style:{flex:1,padding:10,border:"none",borderBottom:tab===t.k?"3px solid "+color:"3px solid transparent",background:tab===t.k?color+"11":"transparent",color:tab===t.k?color:stx,fontWeight:tab===t.k?700:500,fontSize:11,cursor:"pointer"}},t.l))),
-      // Content
-      React.createElement("div",{style:{flex:1,overflow:"auto",padding:14}},
-        // SURV LIST
-        mode==="surv"&&tab==="list"&&(observations.length===0?React.createElement("div",{style:{textAlign:"center",padding:36,color:stx}},React.createElement("div",{style:{fontSize:44}},"✅"),React.createElement("p",{style:{fontWeight:600}},"Parcelle saine")):
-          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},observations.map(r=>React.createElement(ObsCard,{key:r.id,r,treatments,sec,dark,cbg,ctx,stx,bd,onTog:onTogObs,onDel:onDelObs,showSection:false,compact:false})))),
-        // SURV ADD
+          React.createElement("div",null,React.createElement("h2",{style:{color:"#fff",fontSize:20,fontWeight:800,margin:0}},(mode==="surv"?"🔍 ":"💊 ")+sec.name+" — "+par.id),React.createElement("p",{style:{color:"rgba(255,255,255,0.8)",fontSize:12,margin:"2px 0 0"}},sec.fullName+" • "+par.area)),
+          React.createElement("button",{onClick:onClose,style:{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",width:32,height:32,borderRadius:10,fontSize:16,cursor:"pointer"}},"✕")),
+        React.createElement("div",{style:{display:"flex",gap:6,marginTop:10}},
+          React.createElement("span",{className:"tag",style:{background:"rgba(255,255,255,0.2)",color:"#fff"}},activeObs.length+" actif"+(activeObs.length>1?"s":"")),
+          React.createElement("span",{className:"tag",style:{background:"rgba(255,255,255,0.2)",color:"#fff"}},treatments.length+" trt"),
+          React.createElement("button",{onClick:()=>{setMode(mode==="surv"?"trt":"surv");setTab("list")},className:"btn",style:{marginLeft:"auto",background:"rgba(255,255,255,0.2)",color:"#fff",padding:"4px 12px",fontSize:10}},mode==="surv"?"💊 Traitement →":"🔍 Surveillance →"))),
+      React.createElement("div",{style:{display:"flex",borderBottom:"1px solid "+bd,flexShrink:0,padding:"0 4px"}},
+        (mode==="surv"?[{k:"list",l:"Observations"},{k:"add",l:"➕ Observer"}]:[{k:"list",l:"Traitements"},{k:"add",l:"➕ Traiter"}]).map(t=>React.createElement("button",{key:t.k,onClick:()=>setTab(t.k),style:{flex:1,padding:"12px 8px",border:"none",borderBottom:tab===t.k?"3px solid "+color:"3px solid transparent",background:"transparent",color:tab===t.k?color:stx,fontWeight:tab===t.k?700:500,fontSize:12,cursor:"pointer"}},t.l))),
+      React.createElement("div",{style:{flex:1,overflow:"auto",padding:16}},
+        mode==="surv"&&tab==="list"&&(observations.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:stx}},React.createElement("div",{style:{fontSize:48}},"✅"),React.createElement("p",{style:{fontWeight:600,marginTop:8}},"Parcelle saine")):
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},observations.map(r=>{const lt=treatments.filter(t=>t.obsId===r.id);const sevS=SC[r.sev]||{};
+            return React.createElement("div",{key:r.id,className:"card",style:{background:r.res?(dark?"#1E293B":"#F8FAFC"):(dark?sevS.bg+"15":sevS.bg||cbg),border:"1px solid "+(r.res?bd:sevS.border||bd),padding:14,opacity:r.res?0.6:1}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:6}},React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:14}},r.dis),React.createElement("span",{className:"tag",style:{background:sevS.bg,color:sevS.text,marginLeft:6}},r.sev),r.res&&React.createElement("span",{className:"tag",style:{background:"#DCFCE7",color:"#166534",marginLeft:4}},"✓")),React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at))),
+              React.createElement("div",{style:{display:"flex",gap:10,fontSize:11,color:stx}},React.createElement("span",null,"📅 "+fD(r.date)+" "+fH(r.at)),r.zone&&React.createElement("span",null,"📐 "+r.zone+"%")),
+              r.obsText&&React.createElement("div",{style:{fontSize:12,marginTop:6,padding:"8px 10px",background:dark?"#0F172A":"#F8FAFC",borderRadius:10,borderLeft:"3px solid "+color}},r.obsText),
+              React.createElement(PhotoGrid,{photos:r.photos||[],dark}),
+              lt.length>0&&React.createElement("div",{style:{marginTop:8,padding:"8px",background:dark?"#1A1028":"#F5F3FF",borderRadius:10}},React.createElement("div",{style:{fontSize:10,fontWeight:700,color:"#7C3AED"}},"💊 "+lt.length+" trt"),lt.map(t=>React.createElement("div",{key:t.id,style:{fontSize:11,color:stx}},t.prod+" "+t.dose))),
+              React.createElement("div",{style:{display:"flex",gap:6,marginTop:10}},React.createElement("button",{onClick:()=>onTogObs(r.id),className:"btn "+(r.res?"btn-surv":"btn-primary"),style:{flex:1,padding:"8px",fontSize:11}},r.res?"↩️ Réactiver":"✅ Résolu"),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDelObs(r.id)},className:"btn btn-danger",style:{padding:"8px 12px",fontSize:11}},"🗑️")))}))),
         mode==="surv"&&tab==="add"&&React.createElement(AddObsForm,{sk,pid:par.id,diseases,onSubmit:onAddObs,dark,cbg,ctx,stx,bd}),
-        // TRT LIST
-        mode==="trt"&&tab==="list"&&(treatments.length===0?React.createElement("div",{style:{textAlign:"center",padding:36,color:stx}},React.createElement("div",{style:{fontSize:44}},"💊"),React.createElement("p",{style:{fontWeight:600}},"Aucun traitement")):
-          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},treatments.map(r=>{const lo=observations.find(o=>o.id===r.obsId);const da=r.darEnd&&new Date(r.darEnd)>new Date();const dd=da?Math.ceil((new Date(r.darEnd)-new Date())/864e5):0;
-            return React.createElement("div",{key:r.id,style:{background:dark?"#1A0028":"#F5F3FF",border:"1px solid "+(dark?"#3D1F6B":"#DDD6FE"),borderRadius:12,padding:12,borderLeft:"4px solid "+(da?"#F97316":"#7C3AED")}},
-              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:4}},React.createElement("span",{style:{fontWeight:700,fontSize:14,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),da&&React.createElement("span",{className:"blink",style:{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:6,background:"#FFF7ED",color:"#C2410C",border:"1px solid #FB923C"}},"⏳ DAR: "+dd+"j")),
-              React.createElement("div",{style:{fontSize:12,color:stx}},React.createElement("div",null,"📏 "+r.dose),React.createElement("div",null,"📅 "+fD(r.tdate)+" à "+fH(r.at)),r.dar&&React.createElement("div",null,"⏳ DAR: "+r.dar+"j"+(r.darEnd?" → fin "+fD(r.darEnd):"")),r.notes&&React.createElement("div",{style:{fontStyle:"italic",marginTop:2}},"📝 "+r.notes)),
-              lo&&React.createElement("div",{style:{marginTop:6,padding:"6px 8px",background:dark?"#2A2000":"#FEF9C3",borderRadius:8,border:"1px solid "+(dark?"#5C4A00":"#FDE047")}},React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#92400E"}},"🔗 "+lo.dis+" ("+lo.sev+")"+(lo.zone?" • "+lo.zone+"%":""))),
-              React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDelTrt(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")))}))),
-        // TRT ADD
-        mode==="trt"&&tab==="add"&&React.createElement(AddTrtForm,{sk,pid:par.id,activeObs,onSubmit:onAddTrt,dark,cbg,ctx,stx,bd}),
-        // HISTORY TAB
-        tab==="history"&&React.createElement("div",null,
-          React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:10}},"📜 Historique complet — "+sec.name+" "+par.id),
-          observations.length===0&&treatments.length===0?React.createElement("div",{style:{textAlign:"center",padding:30,color:stx}},"Aucun historique"):
-          React.createElement("div",{style:{position:"relative",paddingLeft:20}},
-            React.createElement("div",{style:{position:"absolute",left:8,top:0,bottom:0,width:2,background:bd}}),
-            [...observations.map(o=>({...o,_type:"obs",_time:new Date(o.at).getTime()})),...treatments.map(t=>({...t,_type:"trt",_time:new Date(t.at).getTime()}))].sort((a,b)=>b._time-a._time).map((item,i)=>
-              React.createElement("div",{key:item.id,style:{position:"relative",marginBottom:12,paddingLeft:16}},
-                React.createElement("div",{style:{position:"absolute",left:-14,top:4,width:12,height:12,borderRadius:"50%",background:item._type==="obs"?"#F59E0B":"#8B5CF6",border:"2px solid "+cbg,zIndex:2}}),
-                React.createElement("div",{style:{fontSize:9,color:stx,marginBottom:3}},fDT(item.at)+" • "+(item._type==="obs"?"🔍 Observation":"💊 Traitement")),
-                item._type==="obs"?React.createElement(ObsCard,{r:item,treatments,sec,dark,cbg,ctx,stx,bd,showSection:false,compact:true}):
-                React.createElement("div",{style:{background:dark?"#1A0028":"#F5F3FF",border:"1px solid "+(dark?"#3D1F6B":"#DDD6FE"),borderRadius:10,padding:10}},
-                  React.createElement("div",{style:{fontWeight:700,fontSize:13,color:"#7C3AED"}},item.prod+" — "+item.dose),
-                  React.createElement("div",{style:{fontSize:11,color:stx}},"📅 "+fD(item.tdate)),
-                  item.dar&&React.createElement("div",{style:{fontSize:10,color:"#EA580C"}},"⏳ DAR "+item.dar+"j")))))))));
+        mode==="trt"&&tab==="list"&&(treatments.length===0?React.createElement("div",{style:{textAlign:"center",padding:40,color:stx}},React.createElement("div",{style:{fontSize:48}},"💊"),React.createElement("p",{style:{fontWeight:600,marginTop:8}},"Aucun traitement")):
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},treatments.map(r=>{const lo=observations.find(o=>o.id===r.obsId);const da=r.darEnd&&new Date(r.darEnd)>new Date();const dd=da?Math.ceil((new Date(r.darEnd)-new Date())/864e5):0;
+            return React.createElement("div",{key:r.id,className:"card",style:{background:dark?"#1A1028":"#F5F3FF",border:"1px solid "+(dark?"#2D1F5E":"#DDD6FE"),padding:14,borderLeft:"4px solid "+(da?"#F97316":"#8B5CF6")}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:4}},React.createElement("span",{style:{fontWeight:700,fontSize:15,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},da&&React.createElement("span",{className:"tag blink",style:{background:"#FFF7ED",color:"#C2410C"}},"⏳"+dd+"j"),React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)))),
+              React.createElement("div",{style:{fontSize:12,color:stx}},"📏 "+r.dose+" • 📅 "+fD(r.tdate)),
+              r.dar&&React.createElement("div",{style:{fontSize:11,color:"#EA580C",marginTop:2}},"DAR "+r.dar+"j → fin "+fD(r.darEnd)),
+              r.notes&&React.createElement("div",{style:{fontSize:11,color:stx,fontStyle:"italic",marginTop:2}},r.notes),
+              lo&&React.createElement("div",{style:{marginTop:6,padding:"6px 8px",background:dark?"#1C1917":"#FEF9C3",borderRadius:8,fontSize:10,fontWeight:600,color:"#92400E"}},"🔗 "+lo.dis+" ("+lo.sev+")"),
+              React.createElement("div",{style:{marginTop:10}},React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDelTrt(r.id)},className:"btn btn-danger",style:{padding:"8px 12px",fontSize:11}},"🗑️ Supprimer")))}))),
+        mode==="trt"&&tab==="add"&&React.createElement(AddTrtForm,{sk,pid:par.id,activeObs,onSubmit:onAddTrt,dark,cbg,ctx,stx,bd}))));
 }
 function AddObsForm({sk,pid,diseases,onSubmit,dark,cbg,ctx,stx,bd}){
   const[dis,setDis]=useState("");const[cust,setCust]=useState("");const[sev,setSev]=useState("");const[date,setDate]=useState(new Date().toISOString().split("T")[0]);const[obsText,setObsText]=useState("");const[zone,setZone]=useState("");const[photos,setPhotos]=useState([]);
-  const go=()=>{const d=dis==="__c"?cust:dis;if(!d||!sev){alert("Remplissez maladie et gravité");return}onSubmit({sk,pid,dis:d,sev,date,obsText,zone,photos,res:false});setDis("");setCust("");setSev("");setObsText("");setZone("");setPhotos([])};
-  const is={width:"100%",padding:"11px 12px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx};
-  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
-    React.createElement("h3",{style:{fontSize:15,fontWeight:700,margin:0}},"🔍 Nouvelle observation"),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"🦠 Maladie *"),React.createElement("select",{value:dis,onChange:e=>setDis(e.target.value),style:{...is,cursor:"pointer"}},React.createElement("option",{value:""},"— Sélectionner —"),diseases.map(d=>React.createElement("option",{key:d,value:d},d)),React.createElement("option",{value:"__c"},"✏️ Autre")),dis==="__c"&&React.createElement("input",{value:cust,onChange:e=>setCust(e.target.value),placeholder:"Nom...",style:{...is,marginTop:6}})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"⚠️ Gravité *"),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}},["Faible","Moyen","Grave"].map(s=>React.createElement("button",{key:s,onClick:()=>setSev(s),style:{padding:"10px 6px",borderRadius:10,border:"2px solid "+(sev===s?SC[s].border:bd),background:sev===s?SC[s].bg:cbg,color:sev===s?SC[s].text:stx,fontWeight:700,fontSize:12,cursor:"pointer"}},(s==="Faible"?"🟡":s==="Moyen"?"🟠":"🔴")+" "+s)))),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📅 Date *"),React.createElement("input",{type:"date",value:date,onChange:e=>setDate(e.target.value),style:is})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📐 Zone touchée (%)"),React.createElement("input",{type:"number",value:zone,onChange:e=>setZone(e.target.value),placeholder:"Ex: 30",min:0,max:100,style:is})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📝 Observation visuelle"),React.createElement("textarea",{value:obsText,onChange:e=>setObsText(e.target.value),placeholder:"Symptômes observés...",rows:3,style:{...is,resize:"vertical"}})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📷 Photos"),React.createElement(PhotoCapture,{photos,setPhotos,dark,bd})),
-    React.createElement("button",{onClick:go,style:{padding:13,borderRadius:12,border:"none",background:"linear-gradient(135deg,#D97706,#F59E0B)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}},"🔍 Enregistrer"));
+  const go=()=>{const d=dis==="__c"?cust:dis;if(!d||!sev){alert("Maladie et gravité requis");return}onSubmit({sk,pid,dis:d,sev,date,obsText,zone,photos,res:false});setDis("");setCust("");setSev("");setObsText("");setZone("");setPhotos([])};
+  const is={width:"100%",padding:"12px 14px",borderRadius:12,border:"1.5px solid "+bd,fontSize:14,outline:"none",background:dark?"#0F172A":cbg,color:ctx};
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"🦠 Maladie *"),React.createElement("select",{value:dis,onChange:e=>setDis(e.target.value),style:{...is,cursor:"pointer"}},React.createElement("option",{value:""},"Sélectionner..."),diseases.map(d=>React.createElement("option",{key:d,value:d},d)),React.createElement("option",{value:"__c"},"✏️ Autre")),dis==="__c"&&React.createElement("input",{value:cust,onChange:e=>setCust(e.target.value),placeholder:"Nom...",style:{...is,marginTop:6}})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"⚠️ Gravité *"),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}},["Faible","Moyen","Grave"].map(s=>React.createElement("button",{key:s,onClick:()=>setSev(s),className:"btn",style:{padding:"12px 8px",borderRadius:12,border:"2px solid "+(sev===s?SC[s].border:bd),background:sev===s?SC[s].bg:(dark?"#1E293B":cbg),color:sev===s?SC[s].text:stx,fontWeight:700,justifyContent:"center"}},SC[s].icon+" "+s)))),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📅 Date"),React.createElement("input",{type:"date",value:date,onChange:e=>setDate(e.target.value),style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📐 Zone touchée (%)"),React.createElement("input",{type:"number",value:zone,onChange:e=>setZone(e.target.value),placeholder:"30",min:0,max:100,style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📝 Observation"),React.createElement("textarea",{value:obsText,onChange:e=>setObsText(e.target.value),placeholder:"Symptômes observés...",rows:3,style:{...is,resize:"vertical"}})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📷 Photos"),React.createElement(PhotoCapture,{photos,setPhotos,dark,bd})),
+    React.createElement("button",{onClick:go,className:"btn btn-surv",style:{width:"100%",padding:14,fontSize:15,justifyContent:"center",borderRadius:14}},"🔍 Enregistrer"));
 }
 function AddTrtForm({sk,pid,activeObs,onSubmit,dark,cbg,ctx,stx,bd}){
   const[obsId,setObsId]=useState("");const[prod,setProd]=useState("");const[dose,setDose]=useState("");const[tdate,setTdate]=useState(new Date().toISOString().split("T")[0]);const[dar,setDar]=useState("");const[notes,setNotes]=useState("");
   const darEnd=dar&&tdate?new Date(new Date(tdate).getTime()+parseInt(dar)*864e5).toISOString().split("T")[0]:"";
   const go=()=>{if(!prod||!dose){alert("Produit et dose requis");return}onSubmit({sk,pid,obsId:obsId||null,prod,dose,tdate,dar,darEnd,notes});setProd("");setDose("");setDar("");setNotes("");setObsId("")};
-  const is={width:"100%",padding:"11px 12px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx};
-  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
-    React.createElement("h3",{style:{fontSize:15,fontWeight:700,margin:0}},"💊 Nouveau traitement"),
-    activeObs.length>0&&React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"🔗 Lier à une observation"),React.createElement("select",{value:obsId,onChange:e=>setObsId(e.target.value),style:{...is,cursor:"pointer"}},React.createElement("option",{value:""},"— Préventif —"),activeObs.map(o=>React.createElement("option",{key:o.id,value:o.id},o.dis+" ("+o.sev+") — "+fD(o.date))))),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"💊 Produit *"),React.createElement("input",{value:prod,onChange:e=>setProd(e.target.value),placeholder:"Soufre, Switch...",style:is})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📏 Dose *"),React.createElement("input",{value:dose,onChange:e=>setDose(e.target.value),placeholder:"5 kg/ha...",style:is})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📅 Date *"),React.createElement("input",{type:"date",value:tdate,onChange:e=>setTdate(e.target.value),style:is})),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"⏳ DAR (jours)"),React.createElement("input",{type:"number",value:dar,onChange:e=>setDar(e.target.value),placeholder:"7, 14...",min:0,style:is}),darEnd&&React.createElement("div",{style:{marginTop:4,fontSize:11,color:"#EA580C",fontWeight:600}},"⚠️ Récolte dès "+fD(darEnd))),
-    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📝 Notes"),React.createElement("textarea",{value:notes,onChange:e=>setNotes(e.target.value),placeholder:"Notes...",rows:2,style:{...is,resize:"vertical"}})),
-    React.createElement("button",{onClick:go,style:{padding:13,borderRadius:12,border:"none",background:"linear-gradient(135deg,#7C3AED,#8B5CF6)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}},"💊 Enregistrer"));
+  const is={width:"100%",padding:"12px 14px",borderRadius:12,border:"1.5px solid "+bd,fontSize:14,outline:"none",background:dark?"#0F172A":cbg,color:ctx};
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    activeObs.length>0&&React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"🔗 Lier à"),React.createElement("select",{value:obsId,onChange:e=>setObsId(e.target.value),style:{...is,cursor:"pointer"}},React.createElement("option",{value:""},"Préventif"),activeObs.map(o=>React.createElement("option",{key:o.id,value:o.id},o.dis+" ("+o.sev+")")))),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"💊 Produit *"),React.createElement("input",{value:prod,onChange:e=>setProd(e.target.value),placeholder:"Soufre, Switch...",style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📏 Dose *"),React.createElement("input",{value:dose,onChange:e=>setDose(e.target.value),placeholder:"5 kg/ha...",style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📅 Date"),React.createElement("input",{type:"date",value:tdate,onChange:e=>setTdate(e.target.value),style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"⏳ DAR (jours)"),React.createElement("input",{type:"number",value:dar,onChange:e=>setDar(e.target.value),placeholder:"7, 14...",min:0,style:is}),darEnd&&React.createElement("div",{style:{marginTop:6,fontSize:12,color:"#EA580C",fontWeight:600,padding:"8px 12px",background:dark?"#1C1510":"#FFF7ED",borderRadius:10}},"⚠️ Récolte dès "+fD(darEnd))),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:12,fontWeight:600,color:stx,marginBottom:5}},"📝 Notes"),React.createElement("textarea",{value:notes,onChange:e=>setNotes(e.target.value),placeholder:"Notes...",rows:2,style:{...is,resize:"vertical"}})),
+    React.createElement("button",{onClick:go,className:"btn btn-trt",style:{width:"100%",padding:14,fontSize:15,justifyContent:"center",borderRadius:14}},"💊 Enregistrer"));
 }
 
-// VISUAL PLAN (unchanged)
+// VISUAL PLAN
 function VisualPlan({bg,cbg,ctx,stx,bd,dark}){
   const[zoom,setZoom]=useState(1);
   const blocks=[{id:"Bureau",x:37,y:0,w:9,h:3.5,c:"#64748B",ic:"🏢"},{id:"D.E",x:46,y:0,w:5,h:3.5,c:"#78716C",ic:"📦"},{id:"D.P",x:51,y:0,w:5,h:3.5,c:"#92400E",ic:"🧪"},{id:"M.S",x:56,y:0,w:5,h:3.5,c:"#78716C",ic:"🏪"},{id:"P1",x:61,y:0,w:4,h:3.5,c:"#0EA5E9",ic:"💧"},{id:"E",x:66,y:1,w:3,h:3,c:"#6B7280",ic:"🚪"},{id:"V15\n0.68ha",x:20,y:2,w:6,h:5,c:"#3B82F6",sec:"AG1"},{id:"P3",x:26,y:2,w:3,h:2.5,c:"#0EA5E9",ic:"💧"},{id:"V13\n0.66ha",x:29,y:2,w:6,h:5,c:"#3B82F6",sec:"AG1"},{id:"B1",x:35,y:5,w:4,h:3,c:"#0EA5E9",ic:"💧"},{id:"B2",x:35,y:8.5,w:4,h:3,c:"#0EA5E9",ic:"💧"},{id:"V16\n0.86ha",x:20,y:8,w:7,h:6,c:"#3B82F6",sec:"AG1"},{id:"V14\n0.74ha",x:27,y:8,w:7,h:6,c:"#3B82F6",sec:"AG1"},{id:"SF1",x:35,y:12,w:3.5,h:3,c:"#10B981",ic:"⚙️"},{id:"V18\n1.00ha",x:2,y:3,w:8,h:6,c:"#6366F1",sec:"AG2"},{id:"V17\n0.91ha",x:2,y:10,w:7,h:6,c:"#6366F1",sec:"AG2"},{id:"V19\n0.70ha",x:2,y:17,w:7,h:5.5,c:"#E11D48",sec:"AG5"},{id:"V6\n0.74ha",x:10,y:15,w:7,h:6,c:"#E11D48",sec:"AG5"},{id:"V9\n0.63ha",x:10,y:21.5,w:7,h:6,c:"#E11D48",sec:"AG5"},{id:"V5\n0.70ha",x:2,y:23,w:7,h:6,c:"#E11D48",sec:"AG5"},{id:"SF2",x:35,y:15.5,w:3.5,h:3,c:"#10B981",ic:"⚙️"},{id:"V10\n0.54ha",x:10,y:28,w:6,h:5,c:"#E11D48",sec:"AG5"},{id:"V11\n0.66ha",x:16,y:28,w:6,h:5,c:"#E11D48",sec:"AG5"},{id:"V1\n0.42ha",x:39,y:7,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V2\n0.31ha",x:46,y:7,w:6,h:5.5,c:"#DC2626",sec:"AG4"},{id:"WC4",x:45,y:13,w:3,h:2.5,c:"#6B7280",ic:"🚻"},{id:"V4\n0.42ha",x:39,y:13.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V12\n0.45ha",x:39,y:20,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V7\n0.45ha",x:46,y:20,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V13\n0.45ha",x:39,y:26,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V15\n0.55ha",x:46,y:26,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V20\n0.66ha",x:39,y:32.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V19\n0.78ha",x:46,y:32.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V21\n0.65ha",x:39,y:38.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"V18\n0.79ha",x:46,y:38.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},{id:"A",x:57,y:8,w:4,h:4,c:"#92400E",ic:"🔧"},{id:"P2",x:57,y:13,w:3.5,h:3,c:"#0EA5E9",ic:"💧"},{id:"V3\n0.30ha",x:62,y:5,w:5,h:4.5,c:"#8B5CF6",sec:"AG3a"},{id:"V5\n0.21ha",x:55,y:13,w:4,h:3.5,c:"#8B5CF6",sec:"AG3a"},{id:"V12\n0.21ha",x:55,y:13,w:4,h:3.5,c:"#8B5CF6",sec:"AG3a"},{id:"V6\n0.39ha",x:67,y:5,w:5,h:4.5,c:"#8B5CF6",sec:"AG3a"},{id:"R",x:67,y:11,w:4,h:4,c:"#B45309",ic:"🍽️"},{id:"V8\n0.20ha",x:67,y:16,w:4,h:4.5,c:"#8B5CF6",sec:"AG3a"},{id:"V9\n0.30ha",x:71,y:16,w:4,h:4.5,c:"#8B5CF6",sec:"AG3a"},{id:"V11\n0.25ha",x:67,y:21.5,w:4,h:4.5,c:"#7C3AED",sec:"AG3b"},{id:"V10\n0.36ha",x:71,y:21.5,w:4,h:4.5,c:"#7C3AED",sec:"AG3b"},{id:"V16\n0.88ha",x:60,y:27,w:7,h:5.5,c:"#7C3AED",sec:"AG3b"},{id:"V17\n0.79ha",x:67,y:27,w:7,h:5.5,c:"#7C3AED",sec:"AG3b"},{id:"V1\n0.68ha",x:39,y:45,w:7,h:5.5,c:"#16A34A",sec:"S1"},{id:"V2\n0.37ha",x:46,y:45,w:6,h:5.5,c:"#16A34A",sec:"S1"},{id:"V3\n0.72ha",x:52,y:45,w:6,h:5.5,c:"#16A34A",sec:"S1"},{id:"V4\n0.80ha",x:39,y:51,w:7,h:5.5,c:"#16A34A",sec:"S1"},{id:"V5\n0.75ha",x:46,y:51,w:6,h:5.5,c:"#16A34A",sec:"S1"},{id:"V6\n0.29ha",x:52,y:51,w:5,h:5.5,c:"#16A34A",sec:"S1"},{id:"V7\n0.87ha",x:39,y:57,w:7,h:5.5,c:"#16A34A",sec:"S1"},{id:"V8\n0.76ha",x:46,y:57,w:6,h:5.5,c:"#16A34A",sec:"S1"},{id:"V9\n0.26ha",x:52,y:57,w:5,h:5.5,c:"#16A34A",sec:"S1"},{id:"V10\n0.77ha",x:30,y:64,w:8,h:5.5,c:"#059669",sec:"S2"},{id:"V11\n0.85ha",x:42,y:64,w:8,h:5.5,c:"#059669",sec:"S2"},{id:"V12\n0.66ha",x:18,y:70,w:6,h:5,c:"#059669",sec:"S2"},{id:"V14\n0.67ha",x:18,y:70,w:6,h:5,c:"#059669",sec:"S2"},{id:"V13\n1.52ha",x:24,y:70,w:12,h:5,c:"#059669",sec:"S2"},{id:"V16\n0.66ha",x:18,y:76,w:6,h:5,c:"#059669",sec:"S2"},{id:"V15\n1.50ha",x:24,y:76,w:12,h:5,c:"#059669",sec:"S2"},{id:"V18\n0.60ha",x:18,y:82,w:6,h:5,c:"#059669",sec:"S2"},{id:"V17\n1.50ha",x:24,y:82,w:12,h:5,c:"#059669",sec:"S2"},{id:"V20\n0.70ha",x:18,y:88,w:7,h:5.5,c:"#0D9488",sec:"S3"},{id:"V19\n1.00ha",x:25,y:88,w:10,h:5.5,c:"#0D9488",sec:"S3"},{id:"V31\n0.83ha",x:66,y:68,w:7,h:5.5,c:"#EA580C",sec:"AG6"},{id:"V32\n0.66ha",x:73,y:68,w:6,h:5.5,c:"#EA580C",sec:"AG6"},{id:"V34\n0.64ha",x:66,y:74,w:7,h:5.5,c:"#EA580C",sec:"AG6"},{id:"V33\n0.59ha",x:73,y:74,w:6,h:5.5,c:"#EA580C",sec:"AG6"},{id:"V35\n0.73ha",x:66,y:80,w:7,h:5.5,c:"#EA580C",sec:"AG6"},{id:"V36\n0.52ha",x:73,y:80,w:6,h:5.5,c:"#EA580C",sec:"AG6"}];
-  const secLabels=[{t:"P-AG1 : 3.00 ha",x:20,y:0.5,c:"#3B82F6"},{t:"P-AG2 : 2.60 ha",x:2,y:1,c:"#6366F1"},{t:"P-AG5 : 2.70 ha",x:10,y:14,c:"#E11D48"},{t:"P-AG4 : 6 ha",x:39,y:31.5,c:"#DC2626"},{t:"P-AG3 : 1.80 ha",x:62,y:3,c:"#8B5CF6"},{t:"P-AG3 : 2.0 ha",x:67,y:20,c:"#7C3AED"},{t:"S1 : 5.50 ha",x:52,y:43,c:"#16A34A"},{t:"S2 : 6.6 ha",x:18,y:68,c:"#059669"},{t:"S3 : 3.8 ha",x:18,y:86.5,c:"#0D9488"},{t:"P-AG6 : 4.00 ha",x:66,y:66.5,c:"#EA580C"}];
+  const secLabels=[{t:"AG1 : 3.00 ha",x:20,y:0.5,c:"#3B82F6"},{t:"AG2 : 2.60 ha",x:2,y:1,c:"#6366F1"},{t:"AG5 : 2.70 ha",x:10,y:14,c:"#E11D48"},{t:"AG4 : 6 ha",x:39,y:31.5,c:"#DC2626"},{t:"AG3a : 1.80 ha",x:62,y:3,c:"#8B5CF6"},{t:"AG3b : 2.0 ha",x:67,y:20,c:"#7C3AED"},{t:"S1 : 5.50 ha",x:52,y:43,c:"#16A34A"},{t:"S2 : 6.6 ha",x:18,y:68,c:"#059669"},{t:"S3 : 3.8 ha",x:18,y:86.5,c:"#0D9488"},{t:"AG6 : 4.00 ha",x:66,y:66.5,c:"#EA580C"}];
   return React.createElement("div",null,
-    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 10px"}},"🏗️ Plan Ferme Zaouia"),
-    React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8,justifyContent:"center"}},React.createElement("button",{onClick:()=>setZoom(z=>Math.max(0.5,z-0.2)),style:{width:34,height:34,borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:16,cursor:"pointer",color:ctx,fontWeight:700}},"−"),React.createElement("span",{style:{padding:"8px 10px",fontSize:11,fontWeight:600,color:stx}},Math.round(zoom*100)+"%"),React.createElement("button",{onClick:()=>setZoom(z=>Math.min(3,z+0.2)),style:{width:34,height:34,borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:16,cursor:"pointer",color:ctx,fontWeight:700}},"+"),React.createElement("button",{onClick:()=>setZoom(1),style:{padding:"8px 10px",borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:10,cursor:"pointer",color:stx,fontWeight:600}},"Reset")),
-    React.createElement("div",{style:{overflow:"auto",borderRadius:14,border:"2px solid "+bd,background:dark?"#0A1A0D":"#E8F5E9"}},React.createElement("div",{style:{position:"relative",width:Math.max(700,700*zoom),height:Math.max(680,680*zoom),padding:8}},
-      React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:20*zoom,background:"linear-gradient(90deg,#2D6A4F,#40916C)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"6px 6px 0 0",zIndex:10}},React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:9*zoom,letterSpacing:1}},"PLAN FERME ZAOUIA « AGRO BERRY »")),
+    React.createElement("h2",{style:{fontSize:18,fontWeight:800,marginBottom:10}},"🏗️ Plan Ferme Zaouia"),
+    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:10,justifyContent:"center"}},React.createElement("button",{onClick:()=>setZoom(z=>Math.max(0.5,z-0.2)),className:"btn btn-ghost",style:{width:36,height:36,padding:0,justifyContent:"center"}},"−"),React.createElement("span",{style:{padding:"8px 12px",fontSize:12,fontWeight:600,color:stx}},Math.round(zoom*100)+"%"),React.createElement("button",{onClick:()=>setZoom(z=>Math.min(3,z+0.2)),className:"btn btn-ghost",style:{width:36,height:36,padding:0,justifyContent:"center"}},"+"),React.createElement("button",{onClick:()=>setZoom(1),className:"btn btn-ghost",style:{padding:"8px 12px",fontSize:11}},"Reset")),
+    React.createElement("div",{style:{overflow:"auto",borderRadius:16,border:"1.5px solid "+bd,background:dark?"#0A1A0D":"#E8F5E9"}},React.createElement("div",{style:{position:"relative",width:Math.max(700,700*zoom),height:Math.max(680,680*zoom),padding:8}},
+      React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:20*zoom,background:"linear-gradient(90deg,#0F172A,#1E293B)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"8px 8px 0 0",zIndex:10}},React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:9*zoom,letterSpacing:1.5}},"PLAN FERME ZAOUIA « AGRO BERRY »")),
       secLabels.map((sl,i)=>React.createElement("div",{key:"sl"+i,style:{position:"absolute",left:sl.x*0.82*zoom+"%",top:(sl.y*0.82+3)*zoom+"%",fontSize:7*zoom,fontWeight:800,color:sl.c,whiteSpace:"nowrap",zIndex:8}},sl.t)),
-      blocks.map((b,i)=>{const isSec=!!b.sec;const isInfra=!!b.ic;const lines=b.id.split("\n");return React.createElement("div",{key:"b"+i,style:{position:"absolute",left:b.x*0.82*zoom+"%",top:(b.y*0.82+3)*zoom+"%",width:b.w*0.82*zoom+"%",height:b.h*0.82*zoom+"%",background:isSec?(dark?b.c+"33":b.c+"22"):(dark?"#252525":"#F1F5F9"),border:"1.5px solid "+(isSec?b.c+"88":(dark?"#444":"#CBD5E1")),borderRadius:3*zoom,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:5}},isInfra&&React.createElement("span",{style:{fontSize:8*zoom}},b.ic),lines.map((l,li)=>React.createElement("span",{key:li,style:{fontSize:(li===0?7.5:5.5)*zoom,fontWeight:li===0?700:500,color:isSec?b.c:(dark?"#9CA3AF":b.c||"#64748B"),lineHeight:1.2}},l)))}))),
-    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:12,marginTop:10,border:"1px solid "+bd}},React.createElement("h4",{style:{fontSize:12,fontWeight:700,marginBottom:8}},"Légende"),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6,fontSize:10,color:stx}},["💧 Bassin/Puits","🧪 Dépôt phyto","📦 Dépôt engrais","⚙️ Station fertigation","🏪 Magasin","🔧 Atelier","🍽️ Réfectoire","🚪 Entrée"].map((l,i)=>React.createElement("span",{key:i},l))),React.createElement("div",{style:{marginTop:8,display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:4,fontSize:10}},
-      [{n:"HLS",c:"#3B82F6"},{n:"Sol",c:"#DC2626"},{n:"Fraise",c:"#16A34A"},{n:"Infra",c:"#64748B"}].map((x,i)=>React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{width:12,height:12,borderRadius:3,background:x.c+"33",border:"2px solid "+x.c}}),React.createElement("span",{style:{color:stx}},x.n))))));
+      blocks.map((b,i)=>{const isSec=!!b.sec;const isInfra=!!b.ic;const lines=b.id.split("\n");return React.createElement("div",{key:"b"+i,style:{position:"absolute",left:b.x*0.82*zoom+"%",top:(b.y*0.82+3)*zoom+"%",width:b.w*0.82*zoom+"%",height:b.h*0.82*zoom+"%",background:isSec?(dark?b.c+"33":b.c+"22"):(dark?"#1E293B":"#F1F5F9"),border:"1.5px solid "+(isSec?b.c+"88":(dark?"#334155":"#CBD5E1")),borderRadius:4*zoom,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:5}},isInfra&&React.createElement("span",{style:{fontSize:8*zoom}},b.ic),lines.map((l,li)=>React.createElement("span",{key:li,style:{fontSize:(li===0?7.5:5.5)*zoom,fontWeight:li===0?700:500,color:isSec?b.c:(dark?"#94A3B8":b.c||"#64748B"),lineHeight:1.2}},l)))}))));
 }
 
 // SETTINGS
 function Settings({bg,cbg,ctx,stx,bd,dark,ghCfg,setGhCfg,sync,restore,syncSt,observations,treatments,setObs,setTrt,t}){
-  const is={width:"100%",padding:"11px 12px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx};
+  const is={width:"100%",padding:"12px 14px",borderRadius:12,border:"1.5px solid "+bd,fontSize:14,outline:"none",background:dark?"#0F172A":cbg,color:ctx};
   const exp=()=>{const b=new Blob([JSON.stringify({observations,treatments,at:new Date().toISOString(),v:VER},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="agro-berry-"+new Date().toISOString().split("T")[0]+".json";a.click();t("Exporté ✓")};
-  const imp=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.observations){setObs(d.observations);if(d.treatments)setTrt(d.treatments);t("Importé ✓")}else t("Format invalide","err")}catch{t("Erreur","err")}};r.readAsText(f)};
+  const imp=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.observations){setObs(d.observations);if(d.treatments)setTrt(d.treatments);t("Importé ✓")}else t("Invalide","err")}catch{t("Erreur","err")}};r.readAsText(f)};
   return React.createElement("div",null,
-    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 14px"}},"⚙️ Paramètres"),
-    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},React.createElement("h3",{style:{fontSize:14,fontWeight:700,margin:"0 0 10px"}},"🐙 GitHub"),React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},React.createElement("input",{value:ghCfg.owner,onChange:e=>setGhCfg(p=>({...p,owner:e.target.value})),placeholder:"Username",style:is}),React.createElement("input",{value:ghCfg.repo,onChange:e=>setGhCfg(p=>({...p,repo:e.target.value})),placeholder:"Repo",style:is}),React.createElement("input",{type:"password",value:ghCfg.token,onChange:e=>setGhCfg(p=>({...p,token:e.target.value})),placeholder:"Token ghp_...",style:is}),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}},React.createElement("button",{onClick:sync,disabled:syncSt==="s",style:{padding:11,borderRadius:10,border:"none",background:syncSt==="s"?"#9CA3AF":"#2D6A4F",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}},syncSt==="s"?"⏳...":"☁️ Sauvegarder"),React.createElement("button",{onClick:restore,disabled:syncSt==="s",style:{padding:11,borderRadius:10,border:"none",background:syncSt==="s"?"#9CA3AF":"#7C3AED",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}},syncSt==="s"?"⏳...":"📥 Restaurer")))),
-    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},React.createElement("h3",{style:{fontSize:14,fontWeight:700,margin:"0 0 10px"}},"💾 Export / Import"),React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}},React.createElement("button",{onClick:exp,style:{padding:11,borderRadius:10,border:"1px solid "+bd,background:cbg,color:ctx,fontSize:12,fontWeight:600,cursor:"pointer"}},"📤 Exporter"),React.createElement("label",{style:{padding:11,borderRadius:10,border:"1px solid "+bd,background:cbg,color:ctx,fontSize:12,fontWeight:600,cursor:"pointer",textAlign:"center"}},"📥 Importer",React.createElement("input",{type:"file",accept:".json",onChange:imp,style:{display:"none"}})))),
-    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},React.createElement("div",{style:{fontSize:12,color:stx}},React.createElement("div",null,"🔍 Observations: "+observations.length),React.createElement("div",null,"💊 Traitements: "+treatments.length))),
-    React.createElement("div",{style:{background:dark?"#2A0000":"#FEF2F2",borderRadius:12,padding:14,border:"1px solid "+(dark?"#5C0000":"#FECACA")}},React.createElement("button",{onClick:()=>{if(confirm("SUPPRIMER TOUT ?")){setObs([]);setTrt([])}},style:{width:"100%",padding:11,borderRadius:10,border:"1px solid #DC2626",background:"transparent",color:"#DC2626",fontSize:12,fontWeight:600,cursor:"pointer"}},"🗑️ Tout supprimer")),
-    React.createElement("p",{style:{textAlign:"center",fontSize:10,color:stx,marginTop:14}},"Agro Berry v"+VER));
+    React.createElement("h2",{style:{fontSize:18,fontWeight:800,marginBottom:14}},"⚙️ Paramètres"),
+    React.createElement("div",{className:"card",style:{background:cbg,padding:16,marginBottom:12,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:15,fontWeight:700,marginBottom:12}},"🐙 GitHub Sync"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+        React.createElement("input",{value:ghCfg.owner,onChange:e=>setGhCfg(p=>({...p,owner:e.target.value})),placeholder:"Username",style:is}),
+        React.createElement("input",{value:ghCfg.repo,onChange:e=>setGhCfg(p=>({...p,repo:e.target.value})),placeholder:"Repo",style:is}),
+        React.createElement("input",{type:"password",value:ghCfg.token,onChange:e=>setGhCfg(p=>({...p,token:e.target.value})),placeholder:"Token ghp_...",style:is}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+          React.createElement("button",{onClick:sync,disabled:syncSt==="s",className:"btn btn-primary",style:{justifyContent:"center",opacity:syncSt==="s"?0.6:1}},syncSt==="s"?"⏳":"☁️ Sauvegarder"),
+          React.createElement("button",{onClick:restore,disabled:syncSt==="s",className:"btn btn-trt",style:{justifyContent:"center",opacity:syncSt==="s"?0.6:1}},syncSt==="s"?"⏳":"📥 Restaurer")))),
+    React.createElement("div",{className:"card",style:{background:cbg,padding:16,marginBottom:12,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:15,fontWeight:700,marginBottom:12}},"💾 Données"),
+      React.createElement("div",{style:{display:"flex",gap:12,marginBottom:12,fontSize:13,color:stx}},React.createElement("span",null,"🔍 "+observations.length+" obs"),React.createElement("span",null,"💊 "+treatments.length+" trt")),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
+        React.createElement("button",{onClick:exp,className:"btn btn-ghost",style:{justifyContent:"center"}},"📤 Exporter"),
+        React.createElement("label",{className:"btn btn-ghost",style:{justifyContent:"center",cursor:"pointer"}},"📥 Importer",React.createElement("input",{type:"file",accept:".json",onChange:imp,style:{display:"none"}})))),
+    React.createElement("div",{className:"card",style:{background:dark?"#1C1017":"#FEF2F2",padding:16,border:"1px solid "+(dark?"#5C2020":"#FECACA")}},
+      React.createElement("button",{onClick:()=>{if(confirm("SUPPRIMER TOUTES LES DONNÉES ?")){setObs([]);setTrt([])}},className:"btn btn-danger",style:{width:"100%",justifyContent:"center"}},"🗑️ Tout supprimer")),
+    React.createElement("p",{style:{textAlign:"center",fontSize:11,color:stx,marginTop:16,fontWeight:500}},"Agro Berry v"+VER+" • Ferme Zaouia"));
 }
-
 ReactDOM.render(React.createElement(App),document.getElementById("root"));
 </script>
 </body>
