@@ -10,19 +10,17 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
   <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #F8FAF5; overscroll-behavior: none; }
-    body.dark { background: #111; color: #e0e0e0; }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
-    @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-    @keyframes pulseRing { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-    .blink-grave { animation: blink 1s ease-in-out infinite; }
-    input, select, textarea, button { font-family: inherit; }
-    #root { min-height: 100vh; }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F8FAF5;overscroll-behavior:none}
+    body.dark{background:#111;color:#e0e0e0}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+    @keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+    .blink{animation:blink 1.2s ease-in-out infinite}
+    input,select,textarea,button{font-family:inherit}
   </style>
 </head>
 <body>
@@ -31,11 +29,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
-const V = "1.2.0";
+const{useState,useEffect,useRef,useMemo}=React;
+const VER="1.3.0";
 
-// ===== FARM DATA =====
-const SECTIONS = {
+// ===== DATA =====
+const SECTIONS={
   AG1:{name:"AG1",label:"HLS",fullName:"Myrtille Hors Sol",area:"3.00 ha",date:"Sept 2025",type:"hls",color:"#3B82F6",
     parcelles:[{id:"V13",area:"0.66 ha"},{id:"V14",area:"0.74 ha"},{id:"V15",area:"0.68 ha"},{id:"V16",area:"0.86 ha"},{id:"V9",area:"0.63 ha"},{id:"V6",area:"0.74 ha"}]},
   AG2:{name:"AG2",label:"HLS",fullName:"Myrtille Hors Sol",area:"2.60 ha",date:"Oct 2025",type:"hls",color:"#6366F1",
@@ -57,653 +55,537 @@ const SECTIONS = {
   S3:{name:"S3",label:"F",fullName:"Fraise",area:"3.80 ha",date:"Oct 2025",type:"fraise",color:"#0D9488",
     parcelles:[{id:"V19",area:"1.00 ha"},{id:"V20",area:"0.70 ha"}]},
 };
-
-const DISEASES_M=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Rouille","Moniliose","Septoriose","Alternaria","Acariens","Pucerons","Drosophila suzukii","Cochenilles","Thrips","Nématodes","Chlorose ferrique","Carence magnésium"];
-const DISEASES_F=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Verticilliose","Rhizoctone","Taches foliaires","Mildiou","Acariens","Pucerons","Thrips","Aleurodes","Limaces","Nématodes","Chlorose ferrique","Carence calcium"];
+const DIS_M=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Rouille","Moniliose","Septoriose","Alternaria","Acariens","Pucerons","Drosophila suzukii","Cochenilles","Thrips","Nématodes","Chlorose ferrique","Carence magnésium"];
+const DIS_F=["Botrytis (Pourriture grise)","Oïdium","Phytophthora","Anthracnose","Verticilliose","Rhizoctone","Taches foliaires","Mildiou","Acariens","Pucerons","Thrips","Aleurodes","Limaces","Nématodes","Chlorose ferrique","Carence calcium"];
 
 const gid=()=>Date.now().toString(36)+Math.random().toString(36).substr(2);
-const fmtD=d=>new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
-const fmtDT=d=>new Date(d).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+const fD=d=>new Date(d).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric"});
+const fDT=d=>new Date(d).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const SC={Faible:{bg:"#FEF9C3",text:"#854D0E",border:"#FDE047"},Moyen:{bg:"#FED7AA",text:"#9A3412",border:"#FB923C"},Grave:{bg:"#FECACA",text:"#991B1B",border:"#F87171"}};
-const statusColor={clean:"#22C55E",faible:"#EAB308",moyen:"#F97316",grave:"#EF4444",resolved:"#94A3B8"};
-const statusBg={clean:"#F0FDF4",faible:"#FFFBEB",moyen:"#FFF7ED",grave:"#FEF2F2",resolved:"#F8FAFC"};
-const statusBorder={clean:"#BBF7D0",faible:"#FDE047",moyen:"#FB923C",grave:"#EF4444",resolved:"#CBD5E1"};
+const stClr={clean:"#22C55E",faible:"#EAB308",moyen:"#F97316",grave:"#EF4444",resolved:"#94A3B8"};
+const stBg={clean:"#fff",faible:"#FFFBEB",moyen:"#FFF7ED",grave:"#FEF2F2",resolved:"#F8FAFC"};
+const stBdr={clean:"#E5E7EB",faible:"#FDE047",moyen:"#FB923C",grave:"#EF4444",resolved:"#CBD5E1"};
 
-function ld(k,f){try{const d=localStorage.getItem("ab_"+k);return d?JSON.parse(d):f;}catch{return f;}}
-function sv(k,d){localStorage.setItem("ab_"+k,JSON.stringify(d));}
+function ld(k,f){try{const d=localStorage.getItem("ab_"+k);return d?JSON.parse(d):f}catch{return f}}
+function sv(k,d){localStorage.setItem("ab_"+k,JSON.stringify(d))}
 
-// ===== MAP LAYOUT - positions matching the PDF =====
-// Each block: { section, parcelle index, x, y, w, h } on a 100x130 grid
-const MAP_PARCELLES = [
-  // AG2 - top left
-  {sk:"AG2",pi:0,x:6,y:6,w:8,h:7},   // V17
-  {sk:"AG2",pi:1,x:2,y:4,w:8,h:7},    // V18
-  {sk:"AG2",pi:2,x:2,y:13,w:7,h:6},   // V19
-
-  // AG1 - top center
-  {sk:"AG1",pi:2,x:16,y:2,w:6,h:5},   // V15
-  {sk:"AG1",pi:1,x:22,y:2,w:6,h:5},   // V14 (was V13 label)
-  {sk:"AG1",pi:0,x:28,y:2,w:5,h:5},   // V13
-  {sk:"AG1",pi:3,x:16,y:8,w:7,h:6},   // V16
-  {sk:"AG1",pi:4,x:23,y:8,w:6,h:6},   // V9
-  {sk:"AG1",pi:5,x:16,y:15,w:6,h:6},  // V6
-
-  // AG5 - below AG1 left
-  {sk:"AG5",pi:0,x:2,y:20,w:7,h:6},   // V5
-  {sk:"AG5",pi:1,x:9,y:15,w:7,h:6},   // V6
-  {sk:"AG5",pi:2,x:9,y:21,w:7,h:6},   // V9
-  {sk:"AG5",pi:3,x:9,y:27,w:6,h:5},   // V10
-  {sk:"AG5",pi:4,x:15,y:27,w:6,h:5},  // V11
-
-  // AG4 - center large block
-  {sk:"AG4",pi:0,x:34,y:6,w:7,h:6},   // V1
-  {sk:"AG4",pi:1,x:41,y:6,w:6,h:6},   // V2
-  {sk:"AG4",pi:2,x:34,y:13,w:7,h:6},  // V4
-  {sk:"AG4",pi:4,x:34,y:20,w:7,h:6},  // V7
-  {sk:"AG4",pi:5,x:34,y:27,w:7,h:6},  // V12
-  {sk:"AG4",pi:6,x:34,y:34,w:7,h:6},  // V13
-  {sk:"AG4",pi:7,x:41,y:34,w:7,h:6},  // V15
-  {sk:"AG4",pi:8,x:34,y:41,w:7,h:7},  // V19 (was V20)
-  {sk:"AG4",pi:9,x:34,y:41,w:7,h:7},  // V20
-  {sk:"AG4",pi:10,x:34,y:49,w:7,h:6}, // V21
-  {sk:"AG4",pi:11,x:41,y:49,w:7,h:6}, // V18
-  {sk:"AG4",pi:3,x:41,y:13,w:6,h:6},  // V5
-
-  // AG3a - right side 1.80ha
-  {sk:"AG3a",pi:0,x:56,y:6,w:5,h:5},  // V3
-  {sk:"AG3a",pi:1,x:61,y:6,w:4,h:4},  // V5
-  {sk:"AG3a",pi:2,x:65,y:6,w:5,h:5},  // V6
-  {sk:"AG3a",pi:3,x:61,y:11,w:4,h:4}, // V12
-  {sk:"AG3a",pi:4,x:65,y:12,w:4,h:5}, // V8
-  {sk:"AG3a",pi:5,x:69,y:12,w:4,h:5}, // V9
-
-  // AG3b - far right 2.00ha
-  {sk:"AG3b",pi:0,x:69,y:18,w:5,h:5}, // V10
-  {sk:"AG3b",pi:1,x:64,y:18,w:5,h:5}, // V11
-  {sk:"AG3b",pi:2,x:58,y:24,w:6,h:6}, // V16
-  {sk:"AG3b",pi:3,x:64,y:24,w:6,h:6}, // V17
-
-  // S1 - Fraise bottom center
-  {sk:"S1",pi:0,x:34,y:56,w:7,h:6},   // V1
-  {sk:"S1",pi:1,x:41,y:56,w:6,h:6},   // V2
-  {sk:"S1",pi:2,x:47,y:56,w:6,h:6},   // V3
-  {sk:"S1",pi:3,x:34,y:63,w:7,h:6},   // V4
-  {sk:"S1",pi:4,x:41,y:63,w:6,h:6},   // V5
-  {sk:"S1",pi:5,x:47,y:63,w:5,h:6},   // V6
-  {sk:"S1",pi:6,x:34,y:70,w:7,h:6},   // V7
-  {sk:"S1",pi:7,x:41,y:70,w:6,h:6},   // V8
-  {sk:"S1",pi:8,x:47,y:70,w:5,h:6},   // V9
-
-  // S2 - below S1
-  {sk:"S2",pi:0,x:26,y:77,w:8,h:6},   // V10
-  {sk:"S2",pi:1,x:38,y:77,w:8,h:6},   // V11
-  {sk:"S2",pi:2,x:18,y:84,w:6,h:5},   // V12
-  {sk:"S2",pi:3,x:24,y:84,w:10,h:5},  // V13
-  {sk:"S2",pi:4,x:18,y:84,w:6,h:5},   // V14
-  {sk:"S2",pi:5,x:24,y:90,w:10,h:6},  // V15
-  {sk:"S2",pi:6,x:18,y:90,w:6,h:6},   // V16
-  {sk:"S2",pi:7,x:24,y:97,w:10,h:6},  // V17
-  {sk:"S2",pi:8,x:18,y:97,w:6,h:6},   // V18
-
-  // S3 - bottom
-  {sk:"S3",pi:0,x:24,y:104,w:10,h:6}, // V19
-  {sk:"S3",pi:1,x:18,y:104,w:6,h:6},  // V20
-
-  // AG6 - far right bottom
-  {sk:"AG6",pi:0,x:62,y:82,w:7,h:6},  // V31
-  {sk:"AG6",pi:1,x:69,y:82,w:6,h:6},  // V32
-  {sk:"AG6",pi:2,x:62,y:89,w:7,h:6},  // V34 (swapped)
-  {sk:"AG6",pi:3,x:69,y:89,w:6,h:6},  // V33
-  {sk:"AG6",pi:4,x:62,y:96,w:7,h:6},  // V35
-  {sk:"AG6",pi:5,x:69,y:96,w:6,h:6},  // V36
-];
-
-// Infrastructure elements
-const INFRA = [
-  {id:"Bureau",x:33,y:0,w:8,h:3,icon:"🏢",color:"#64748B"},
-  {id:"D.E",x:41,y:0,w:4,h:3,icon:"📦",color:"#78716C"},
-  {id:"D.P",x:45,y:0,w:4,h:3,icon:"🧪",color:"#78716C"},
-  {id:"M.S",x:49,y:0,w:4,h:3,icon:"🏪",color:"#78716C"},
-  {id:"P1",x:53,y:0,w:3,h:3,icon:"💧",color:"#0EA5E9"},
-  {id:"E",x:57,y:1,w:3,h:3,icon:"🚪",color:"#6B7280"},
-  {id:"B1",x:30,y:4,w:4,h:3,icon:"💧",color:"#0EA5E9"},
-  {id:"B2",x:30,y:7,w:4,h:3,icon:"💧",color:"#0EA5E9"},
-  {id:"SF1",x:30,y:11,w:3,h:3,icon:"⚙️",color:"#10B981"},
-  {id:"SF2",x:30,y:15,w:3,h:3,icon:"⚙️",color:"#10B981"},
-  {id:"A",x:52,y:8,w:4,h:4,icon:"🔧",color:"#92400E"},
-  {id:"P2",x:52,y:13,w:3,h:3,icon:"💧",color:"#0EA5E9"},
-  {id:"R",x:64,y:13,w:4,h:4,icon:"🍽️",color:"#B45309"},
-];
-
-// Section label positions on map
-const SEC_LABELS = [
-  {sk:"AG1",x:16,y:0,label:"P-AG1: 3.00 ha"},
-  {sk:"AG2",x:0,y:1,label:"P-AG2: 2.60 ha"},
-  {sk:"AG5",x:2,y:17,label:"P-AG5: 2.70 ha"},
-  {sk:"AG4",x:34,y:40,label:"P-AG4: 6 ha"},
-  {sk:"AG3a",x:56,y:3,label:"P-AG3: 1.80 ha"},
-  {sk:"AG3b",x:58,y:16,label:"P-AG3: 2.0 ha"},
-  {sk:"AG6",x:62,y:79,label:"P-AG6: 4.00 ha"},
-  {sk:"S1",x:47,y:53,label:"S1: 5.50 ha"},
-  {sk:"S2",x:18,y:81,label:"S2: 6.6 ha"},
-  {sk:"S3",x:18,y:101,label:"S3: 3.8 ha"},
-];
-
-// ===== GITHUB =====
-async function ghSync(cfg, data) {
-  const c = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-  const p = "data/phyto-data.json";
-  const u = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + p;
-  let sha = null;
-  try { const e = await fetch(u, { headers: { Authorization: "token " + cfg.token } }); if (e.ok) { sha = (await e.json()).sha; } } catch {}
-  const b = { message: "Sync phyto - " + new Date().toLocaleString("fr-FR"), content: c };
-  if (sha) b.sha = sha;
-  return fetch(u, { method: "PUT", headers: { Authorization: "token " + cfg.token, "Content-Type": "application/json" }, body: JSON.stringify(b) });
+// GitHub
+async function ghSync(c,data){
+  const ct=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
+  const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";
+  let sha=null;
+  try{const e=await fetch(u,{headers:{Authorization:"token "+c.token}});if(e.ok)sha=(await e.json()).sha}catch{}
+  const b={message:"Sync phyto - "+new Date().toLocaleString("fr-FR"),content:ct};if(sha)b.sha=sha;
+  return fetch(u,{method:"PUT",headers:{Authorization:"token "+c.token,"Content-Type":"application/json"},body:JSON.stringify(b)});
 }
-async function ghRestore(cfg) {
-  const u = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/data/phyto-data.json";
-  const r = await fetch(u, { headers: { Authorization: "token " + cfg.token } });
-  if (r.ok) { const f = await r.json(); return JSON.parse(decodeURIComponent(escape(atob(f.content)))); }
-  return null;
+async function ghRestore(c){
+  const u="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/data/phyto-data.json";
+  const r=await fetch(u,{headers:{Authorization:"token "+c.token}});
+  if(r.ok){const f=await r.json();return JSON.parse(decodeURIComponent(escape(atob(f.content))))}return null;
 }
 
 // ===== APP =====
-function App() {
-  const [records, setRecords] = useState(() => ld("records", []));
-  const [notes, setNotes] = useState(() => ld("notes", []));
-  const [page, setPage] = useState("map");
-  const [selP, setSelP] = useState(null);
-  const [selS, setSelS] = useState(null);
-  const [filter, setFilter] = useState("all");
-  const [ghCfg, setGhCfg] = useState(() => ld("ghcfg", { token: "", repo: "", owner: "" }));
-  const [syncSt, setSyncSt] = useState("");
-  const [toast, setToast] = useState(null);
-  const [dark, setDark] = useState(() => ld("dark", false));
-  const [search, setSearch] = useState("");
-  const [mapView, setMapView] = useState("map"); // map or table
+function App(){
+  const[records,setRecords]=useState(()=>ld("records",[]));
+  const[notes,setNotes]=useState(()=>ld("notes",[]));
+  const[page,setPage]=useState("map");
+  const[selP,setSelP]=useState(null);
+  const[selS,setSelS]=useState(null);
+  const[filter,setFilter]=useState("all");
+  const[ghCfg,setGhCfg]=useState(()=>ld("ghcfg",{token:"",repo:"",owner:""}));
+  const[syncSt,setSyncSt]=useState("");
+  const[toast,setToast]=useState(null);
+  const[dark,setDark]=useState(()=>ld("dark",false));
+  const[search,setSearch]=useState("");
 
-  useEffect(() => { sv("records", records); }, [records]);
-  useEffect(() => { sv("notes", notes); }, [notes]);
-  useEffect(() => { sv("ghcfg", ghCfg); }, [ghCfg]);
-  useEffect(() => { sv("dark", dark); document.body.classList.toggle("dark", dark); }, [dark]);
+  useEffect(()=>{sv("records",records)},[records]);
+  useEffect(()=>{sv("notes",notes)},[notes]);
+  useEffect(()=>{sv("ghcfg",ghCfg)},[ghCfg]);
+  useEffect(()=>{sv("dark",dark);document.body.classList.toggle("dark",dark)},[dark]);
 
-  const t = (m, tp) => { setToast({ m, tp: tp || "ok" }); setTimeout(() => setToast(null), 3000); };
+  const t=(m,tp)=>{setToast({m,tp:tp||"ok"});setTimeout(()=>setToast(null),3000)};
 
-  const sync = async () => {
-    if (!ghCfg.token || !ghCfg.repo || !ghCfg.owner) { t("Configurez GitHub", "err"); return; }
-    setSyncSt("s"); try { const r = await ghSync(ghCfg, { records, notes, at: new Date().toISOString() });
-      if (r.ok) { setSyncSt("d"); t("Synchronisé ✓"); } else { setSyncSt("e"); t("Erreur sync", "err"); }
-    } catch (e) { setSyncSt("e"); t(e.message, "err"); } setTimeout(() => setSyncSt(""), 3000);
-  };
-  const restore = async () => {
-    if (!ghCfg.token || !ghCfg.repo || !ghCfg.owner) { t("Configurez GitHub", "err"); return; }
-    setSyncSt("s"); try { const d = await ghRestore(ghCfg);
-      if (d) { if (d.records) setRecords(d.records); if (d.notes) setNotes(d.notes); setSyncSt("d"); t("Restauré ✓"); }
-      else { setSyncSt("e"); t("Aucune donnée", "err"); }
-    } catch (e) { setSyncSt("e"); t(e.message, "err"); } setTimeout(() => setSyncSt(""), 3000);
-  };
+  const sync=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Configurez GitHub","err");return}setSyncSt("s");try{const r=await ghSync(ghCfg,{records,notes,at:new Date().toISOString()});if(r.ok){setSyncSt("d");t("Synchronisé ✓")}else{setSyncSt("e");t("Erreur","err")}}catch(e){setSyncSt("e");t(e.message,"err")}setTimeout(()=>setSyncSt(""),3000)};
+  const restore=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Configurez GitHub","err");return}setSyncSt("s");try{const d=await ghRestore(ghCfg);if(d){if(d.records)setRecords(d.records);if(d.notes)setNotes(d.notes);setSyncSt("d");t("Restauré ✓")}else{setSyncSt("e");t("Aucune donnée","err")}}catch(e){setSyncSt("e");t(e.message,"err")}setTimeout(()=>setSyncSt(""),3000)};
 
-  const getPR = (sk, pid) => records.filter(r => r.sk === sk && r.pid === pid);
-  const getPS = (sk, pid) => {
-    const r = getPR(sk, pid); if (!r.length) return "clean";
-    const a = r.filter(x => !x.res);
-    if (a.some(x => x.sev === "Grave")) return "grave";
-    if (a.some(x => x.sev === "Moyen")) return "moyen";
-    if (a.some(x => x.sev === "Faible")) return "faible";
-    return "resolved";
-  };
-  const getActiveCount = (sk, pid) => getPR(sk, pid).filter(r => !r.res).length;
+  const getPR=(sk,pid)=>records.filter(r=>r.sk===sk&&r.pid===pid);
+  const getPS=(sk,pid)=>{const r=getPR(sk,pid);if(!r.length)return"clean";const a=r.filter(x=>!x.res);if(a.some(x=>x.sev==="Grave"))return"grave";if(a.some(x=>x.sev==="Moyen"))return"moyen";if(a.some(x=>x.sev==="Faible"))return"faible";return"resolved"};
+  const getAC=(sk,pid)=>getPR(sk,pid).filter(r=>!r.res).length;
 
-  const addR = (r) => { setRecords(p => [{ ...r, id: gid(), by: "user", at: new Date().toISOString() }, ...p]); t("Enregistré ✓"); };
-  const delR = (id) => { setRecords(p => p.filter(r => r.id !== id)); t("Supprimé"); };
-  const togR = (id) => { setRecords(p => p.map(r => r.id === id ? { ...r, res: !r.res, resAt: !r.res ? new Date().toISOString() : null } : r)); };
-  const addN = (n) => { setNotes(p => [{ ...n, id: gid(), at: new Date().toISOString() }, ...p]); t("Remarque ajoutée ✓"); };
+  const addR=r=>{setRecords(p=>[{...r,id:gid(),by:"user",at:new Date().toISOString()},...p]);t("Enregistré ✓")};
+  const delR=id=>{setRecords(p=>p.filter(r=>r.id!==id));t("Supprimé")};
+  const togR=id=>{setRecords(p=>p.map(r=>r.id===id?{...r,res:!r.res,resAt:!r.res?new Date().toISOString():null}:r))};
 
-  const bg = dark ? "#111" : "#F8FAF5";
-  const cbg = dark ? "#1E1E1E" : "#fff";
-  const ctxt = dark ? "#E5E7EB" : "#1F2937";
-  const stxt = dark ? "#9CA3AF" : "#6B7280";
-  const bdr = dark ? "#333" : "#E5E7EB";
+  const bg=dark?"#111":"#F8FAF5",cbg=dark?"#1E1E1E":"#fff",ctx=dark?"#E5E7EB":"#1F2937",stx=dark?"#9CA3AF":"#6B7280",bd=dark?"#333":"#E5E7EB";
+  const th={bg,cbg,ctx,stx,bd,dark};
 
-  return React.createElement("div", { style: { minHeight: "100vh", background: bg, color: ctxt } },
-    // Toast
-    toast && React.createElement("div", { style: { position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, padding: "12px 24px", borderRadius: 12, background: toast.tp === "err" ? "#DC2626" : "#16A34A", color: "#fff", fontWeight: 600, fontSize: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.3)", animation: "slideDown 0.3s ease" } }, toast.m),
+  return React.createElement("div",{style:{minHeight:"100vh",background:bg,color:ctx}},
+    toast&&React.createElement("div",{style:{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",zIndex:9999,padding:"12px 24px",borderRadius:12,background:toast.tp==="err"?"#DC2626":"#16A34A",color:"#fff",fontWeight:600,fontSize:14,boxShadow:"0 8px 32px rgba(0,0,0,0.3)",animation:"slideDown 0.3s"}},toast.m),
 
     // Header
-    React.createElement("header", { style: { background: dark ? "linear-gradient(135deg, #0D1B0F, #1A3A2A)" : "linear-gradient(135deg, #1B4332, #2D6A4F)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" } },
-      React.createElement("div", null,
-        React.createElement("h1", { style: { color: "#fff", fontSize: 16, fontWeight: 800, margin: 0 } }, "🌿 AGRO BERRY"),
-        React.createElement("p", { style: { color: "#A7F3D0", fontSize: 10, margin: 0 } }, "Traitement Phytosanitaire — Ferme Zaouia")
-      ),
-      React.createElement("div", { style: { display: "flex", gap: 6, alignItems: "center" } },
-        React.createElement("button", { onClick: () => setDark(!dark), style: { background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", padding: "6px 10px", borderRadius: 8, fontSize: 14, cursor: "pointer" } }, dark ? "☀️" : "🌙"),
-        React.createElement("span", { style: { color: "#A7F3D0", fontSize: 10 } }, "v" + V)
-      )
+    React.createElement("header",{style:{background:dark?"linear-gradient(135deg,#0D1B0F,#1A3A2A)":"linear-gradient(135deg,#1B4332,#2D6A4F)",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
+      React.createElement("div",null,
+        React.createElement("h1",{style:{color:"#fff",fontSize:16,fontWeight:800,margin:0}},"🌿 AGRO BERRY"),
+        React.createElement("p",{style:{color:"#A7F3D0",fontSize:10,margin:0}},"Traitement Phytosanitaire — Ferme Zaouia")),
+      React.createElement("div",{style:{display:"flex",gap:6,alignItems:"center"}},
+        React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.15)",border:"none",color:"#fff",padding:"6px 10px",borderRadius:8,fontSize:14,cursor:"pointer"}},dark?"☀️":"🌙"),
+        React.createElement("span",{style:{color:"#A7F3D0",fontSize:10}},"v"+VER))
     ),
 
-    // Nav
-    React.createElement("nav", { style: { display: "flex", background: cbg, borderBottom: "1px solid " + bdr, overflow: "auto" } },
-      [{k:"map",l:"🗺️ Plan"},{k:"history",l:"📋 Historique"},{k:"stats",l:"📊 Stats"},{k:"settings",l:"⚙️ Config"}].map(tab =>
-        React.createElement("button", { key: tab.k, onClick: () => setPage(tab.k), style: { flex: 1, padding: "11px 6px", border: "none", borderBottom: page === tab.k ? "3px solid #2D6A4F" : "3px solid transparent", background: page === tab.k ? (dark ? "#1A3A2A" : "#F0FDF4") : "transparent", color: page === tab.k ? (dark ? "#6EE7B7" : "#1B4332") : stxt, fontWeight: page === tab.k ? 700 : 500, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap" } }, tab.l)
-      )
+    // Nav - 5 tabs
+    React.createElement("nav",{style:{display:"flex",background:cbg,borderBottom:"1px solid "+bd,overflow:"auto"}},
+      [{k:"map",l:"🗺️ Suivi"},{k:"plan",l:"🏗️ Plan"},{k:"history",l:"📋 Historique"},{k:"stats",l:"📊 Stats"},{k:"settings",l:"⚙️ Config"}].map(tab=>
+        React.createElement("button",{key:tab.k,onClick:()=>setPage(tab.k),style:{flex:1,padding:"11px 4px",border:"none",borderBottom:page===tab.k?"3px solid #2D6A4F":"3px solid transparent",background:page===tab.k?(dark?"#1A3A2A":"#F0FDF4"):"transparent",color:page===tab.k?(dark?"#6EE7B7":"#1B4332"):stx,fontWeight:page===tab.k?700:500,fontSize:10.5,cursor:"pointer",whiteSpace:"nowrap"}},tab.l))
     ),
 
     // Content
-    React.createElement("main", { style: { padding: 10, maxWidth: 1200, margin: "0 auto" } },
-      page === "map" && React.createElement(FarmMapPage, { records, getPS, getActiveCount, onSelect: (sk, p) => { setSelS(sk); setSelP(p); }, dark, cbg, ctxt, stxt, bdr, search, setSearch, mapView, setMapView, filter, setFilter }),
-      page === "history" && React.createElement(HistoryView, { records, filter, setFilter, onDel: delR, onTog: togR, dark, cbg, ctxt, stxt, bdr }),
-      page === "stats" && React.createElement(StatsView, { records, dark, cbg, ctxt, stxt }),
-      page === "settings" && React.createElement(SettingsPage, { ghCfg, setGhCfg, sync, restore, syncSt, records, setRecords, t, dark, cbg, ctxt, stxt, bdr })
+    React.createElement("main",{style:{padding:10,maxWidth:1200,margin:"0 auto"}},
+      page==="map"&&React.createElement(CardMap,{...th,records,getPS,getAC,onSelect:(sk,p)=>{setSelS(sk);setSelP(p)},search,setSearch,filter,setFilter}),
+      page==="plan"&&React.createElement(VisualPlan,{...th}),
+      page==="history"&&React.createElement(History,{...th,records,filter,setFilter,onDel:delR,onTog:togR}),
+      page==="stats"&&React.createElement(Stats,{...th,records}),
+      page==="settings"&&React.createElement(Settings,{...th,ghCfg,setGhCfg,sync,restore,syncSt,records,setRecords,t})
     ),
 
     // Modal
-    selP && selS && React.createElement(ParcelleModal, {
-      sec: SECTIONS[selS], sk: selS, par: selP, records: getPR(selS, selP.id),
-      notes: notes.filter(n => n.sk === selS && n.pid === selP.id),
-      onClose: () => { setSelP(null); setSelS(null); }, onAdd: addR, onDel: delR, onTog: togR, onAddN: addN, dark, cbg, ctxt, stxt, bdr
-    })
+    selP&&selS&&React.createElement(Modal,{...th,sec:SECTIONS[selS],sk:selS,par:selP,records:getPR(selS,selP.id),onClose:()=>{setSelP(null);setSelS(null)},onAdd:addR,onDel:delR,onTog:togR})
   );
 }
 
-// ===== FARM MAP PAGE =====
-function FarmMapPage({ records, getPS, getActiveCount, onSelect, dark, cbg, ctxt, stxt, bdr, search, setSearch, mapView, setMapView, filter, setFilter }) {
-  const [zoom, setZoom] = useState(1);
-  const mapRef = useRef(null);
-  const activeTotal = records.filter(r => !r.res).length;
-  const graveTotal = records.filter(r => !r.res && r.sev === "Grave").length;
-  const totalParcelles = Object.values(SECTIONS).reduce((s, sec) => s + sec.parcelles.length, 0);
+// ===== CARD MAP (original style with improvements) =====
+function CardMap({bg,cbg,ctx,stx,bd,dark,records,getPS,getAC,onSelect,search,setSearch,filter,setFilter}){
+  const[exp,setExp]=useState(null);
+  const activeTotal=records.filter(r=>!r.res).length;
+  const graveTotal=records.filter(r=>!r.res&&r.sev==="Grave").length;
+  const totalP=Object.values(SECTIONS).reduce((s,sec)=>s+sec.parcelles.length,0);
+  const[view,setView]=useState("cards");
 
-  const typeFilter = { all: null, hls: "hls", sol: "sol", fraise: "fraise" };
+  const groups=[
+    {title:"🫐 Myrtille Hors Sol (HLS)",keys:["AG1","AG2","AG3a","AG3b"],type:"hls"},
+    {title:"🫐 Myrtille Sol",keys:["AG4","AG5","AG6"],type:"sol"},
+    {title:"🍓 Fraise",keys:["S1","S2","S3"],type:"fraise"},
+  ];
+  const filteredGroups=filter==="all"?groups:groups.filter(g=>g.type===filter);
 
-  const filteredSections = useMemo(() => {
-    if (filter === "all") return MAP_PARCELLES;
-    return MAP_PARCELLES.filter(mp => SECTIONS[mp.sk]?.type === typeFilter[filter]);
-  }, [filter]);
+  const getSS=key=>{const sec=SECTIONS[key];let a=0,g=0;sec.parcelles.forEach(p=>{const r=records.filter(r=>r.sk===key&&r.pid===p.id&&!r.res);a+=r.length;g+=r.filter(r=>r.sev==="Grave").length});return{a,g}};
+  const dot=st=>React.createElement("span",{style:{display:"inline-block",width:8,height:8,borderRadius:"50%",background:stClr[st]||stClr.clean,marginRight:4}});
 
-  const searchResults = useMemo(() => {
-    if (!search.trim()) return null;
-    const q = search.toLowerCase();
-    const results = [];
-    Object.entries(SECTIONS).forEach(([sk, sec]) => {
-      sec.parcelles.forEach((p, i) => {
-        if (p.id.toLowerCase().includes(q) || sec.name.toLowerCase().includes(q)) results.push({ sk, pi: i, parcelle: p, section: sec });
-      });
-    });
-    return results;
-  }, [search]);
+  // Search results
+  const searchRes=useMemo(()=>{
+    if(!search.trim())return null;const q=search.toLowerCase();const res=[];
+    Object.entries(SECTIONS).forEach(([sk,sec])=>{sec.parcelles.forEach((p,i)=>{if(p.id.toLowerCase().includes(q)||sec.name.toLowerCase().includes(q))res.push({sk,p,sec})})});
+    return res;
+  },[search]);
 
-  const exportMap = () => {
-    const el = mapRef.current; if (!el) return;
-    // Simple screenshot via canvas - suggest user uses browser screenshot
-    alert("Utilisez la capture d'écran de votre téléphone (Power + Volume bas) pour exporter le plan.");
-  };
-
-  return React.createElement("div", null,
-    // Summary cards
-    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, marginBottom: 10 } },
-      [{l:"Parcelles",v:totalParcelles,i:"🌱",bg:"#F0FDF4",c:"#16A34A",db:"#0D2818"},
-       {l:"Cas Actifs",v:activeTotal,i:"⚠️",bg:"#FEF9C3",c:"#CA8A04",db:"#2A2000"},
-       {l:"Graves",v:graveTotal,i:"🔴",bg:"#FEE2E2",c:"#DC2626",db:"#2A0000"}
-      ].map((c,i) => React.createElement("div", { key: i, style: { background: dark ? c.db : c.bg, borderRadius: 12, padding: "10px 8px", textAlign: "center" } },
-        React.createElement("div", { style: { fontSize: 18 } }, c.i),
-        React.createElement("div", { style: { fontSize: 20, fontWeight: 800, color: c.c } }, c.v),
-        React.createElement("div", { style: { fontSize: 9, color: c.c, fontWeight: 600 } }, c.l)
-      ))
+  return React.createElement("div",null,
+    // Summary
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}},
+      [{l:"Parcelles",v:totalP,i:"🌱",c:"#16A34A",b:dark?"#0D2818":"#F0FDF4"},
+       {l:"Cas Actifs",v:activeTotal,i:"⚠️",c:"#CA8A04",b:dark?"#2A2000":"#FEF9C3"},
+       {l:"Graves",v:graveTotal,i:"🔴",c:"#DC2626",b:dark?"#2A0000":"#FEE2E2"}
+      ].map((c,i)=>React.createElement("div",{key:i,style:{background:c.b,borderRadius:12,padding:"10px 8px",textAlign:"center"}},
+        React.createElement("div",{style:{fontSize:18}},c.i),
+        React.createElement("div",{style:{fontSize:20,fontWeight:800,color:c.c}},c.v),
+        React.createElement("div",{style:{fontSize:9,color:c.c,fontWeight:600}},c.l)))
     ),
 
-    // Search bar
-    React.createElement("div", { style: { position: "relative", marginBottom: 8 } },
-      React.createElement("input", { value: search, onChange: e => setSearch(e.target.value), placeholder: "🔍 Rechercher une parcelle (ex: V15, AG4...)", style: { width: "100%", padding: "10px 14px 10px 14px", borderRadius: 10, border: "2px solid " + bdr, fontSize: 13, outline: "none", background: cbg, color: ctxt } }),
-      search && React.createElement("button", { onClick: () => setSearch(""), style: { position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", border: "none", background: "transparent", fontSize: 16, cursor: "pointer", color: stxt } }, "✕")
+    // Search
+    React.createElement("div",{style:{position:"relative",marginBottom:8}},
+      React.createElement("input",{value:search,onChange:e=>setSearch(e.target.value),placeholder:"🔍 Rechercher parcelle (V15, AG4...)",style:{width:"100%",padding:"10px 14px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx}}),
+      search&&React.createElement("button",{onClick:()=>setSearch(""),style:{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",border:"none",background:"transparent",fontSize:16,cursor:"pointer",color:stx}},"✕")
     ),
 
     // Search results
-    searchResults && searchResults.length > 0 && React.createElement("div", { style: { background: cbg, border: "1px solid " + bdr, borderRadius: 12, padding: 8, marginBottom: 10, maxHeight: 200, overflow: "auto" } },
-      React.createElement("p", { style: { fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 6 } }, searchResults.length + " résultat(s)"),
-      searchResults.map((r, i) => {
-        const st = getPS(r.sk, r.parcelle.id);
-        const ac = getActiveCount(r.sk, r.parcelle.id);
-        return React.createElement("div", { key: i, onClick: () => onSelect(r.sk, r.parcelle), style: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", borderRadius: 8, cursor: "pointer", marginBottom: 4, background: dark ? "#252525" : "#F9FAFB", border: "1px solid " + bdr } },
-          React.createElement("div", null,
-            React.createElement("span", { style: { fontWeight: 700, fontSize: 13, color: SECTIONS[r.sk].color } }, r.section.name + " — " + r.parcelle.id),
-            React.createElement("span", { style: { fontSize: 11, color: stxt, marginLeft: 8 } }, r.parcelle.area)
-          ),
-          React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4 } },
-            React.createElement("span", { style: { width: 8, height: 8, borderRadius: "50%", background: statusColor[st] } }),
-            ac > 0 && React.createElement("span", { style: { background: "#FEF3C7", color: "#92400E", fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 8 } }, ac)
-          )
-        );
-      })
+    searchRes&&searchRes.length>0&&React.createElement("div",{style:{background:cbg,border:"1px solid "+bd,borderRadius:12,padding:8,marginBottom:10,maxHeight:180,overflow:"auto"}},
+      searchRes.map((r,i)=>{const st=getPS(r.sk,r.p.id);const ac=getAC(r.sk,r.p.id);
+        return React.createElement("div",{key:i,onClick:()=>onSelect(r.sk,r.p),style:{display:"flex",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,cursor:"pointer",marginBottom:3,background:dark?"#252525":"#F9FAFB",border:"1px solid "+bd}},
+          React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:13,color:r.sec.color}},r.sec.name+" — "+r.p.id),React.createElement("span",{style:{fontSize:11,color:stx,marginLeft:8}},r.p.area)),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},dot(st),ac>0&&React.createElement("span",{style:{background:"#FEF3C7",color:"#92400E",fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:8}},ac)))})
     ),
 
-    // Filter + View toggle + Zoom
-    React.createElement("div", { style: { display: "flex", gap: 4, marginBottom: 8, flexWrap: "wrap", alignItems: "center" } },
-      [{k:"all",l:"Tout"},{k:"hls",l:"🫐 HLS"},{k:"sol",l:"🫐 Sol"},{k:"fraise",l:"🍓 Fraise"}].map(f =>
-        React.createElement("button", { key: f.k, onClick: () => setFilter(f.k), style: { padding: "5px 10px", borderRadius: 16, border: filter === f.k ? "2px solid #2D6A4F" : "1px solid " + bdr, background: filter === f.k ? (dark ? "#1A3A2A" : "#F0FDF4") : cbg, color: filter === f.k ? (dark ? "#6EE7B7" : "#2D6A4F") : stxt, fontSize: 10, fontWeight: 600, cursor: "pointer" } }, f.l)
-      ),
-      React.createElement("div", { style: { marginLeft: "auto", display: "flex", gap: 4 } },
-        React.createElement("button", { onClick: () => setMapView("map"), style: { padding: "5px 8px", borderRadius: 8, border: "1px solid " + bdr, background: mapView === "map" ? "#2D6A4F" : cbg, color: mapView === "map" ? "#fff" : stxt, fontSize: 10, fontWeight: 600, cursor: "pointer" } }, "🗺️"),
-        React.createElement("button", { onClick: () => setMapView("table"), style: { padding: "5px 8px", borderRadius: 8, border: "1px solid " + bdr, background: mapView === "table" ? "#2D6A4F" : cbg, color: mapView === "table" ? "#fff" : stxt, fontSize: 10, fontWeight: 600, cursor: "pointer" } }, "📋"),
-        React.createElement("button", { onClick: exportMap, style: { padding: "5px 8px", borderRadius: 8, border: "1px solid " + bdr, background: cbg, color: stxt, fontSize: 10, fontWeight: 600, cursor: "pointer" } }, "📷"),
+    // Filters + view toggle
+    React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap",alignItems:"center"}},
+      [{k:"all",l:"Tout"},{k:"hls",l:"🫐 HLS"},{k:"sol",l:"🫐 Sol"},{k:"fraise",l:"🍓 Fraise"}].map(f=>
+        React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),style:{padding:"5px 10px",borderRadius:16,border:filter===f.k?"2px solid #2D6A4F":"1px solid "+bd,background:filter===f.k?(dark?"#1A3A2A":"#F0FDF4"):cbg,color:filter===f.k?(dark?"#6EE7B7":"#2D6A4F"):stx,fontSize:10,fontWeight:600,cursor:"pointer"}},f.l)),
+      React.createElement("div",{style:{marginLeft:"auto",display:"flex",gap:4}},
+        React.createElement("button",{onClick:()=>setView("cards"),style:{padding:"5px 8px",borderRadius:8,border:"1px solid "+bd,background:view==="cards"?"#2D6A4F":cbg,color:view==="cards"?"#fff":stx,fontSize:10,fontWeight:600,cursor:"pointer"}},"🗺️"),
+        React.createElement("button",{onClick:()=>setView("table"),style:{padding:"5px 8px",borderRadius:8,border:"1px solid "+bd,background:view==="table"?"#2D6A4F":cbg,color:view==="table"?"#fff":stx,fontSize:10,fontWeight:600,cursor:"pointer"}},"📋"))
+    ),
+
+    // CARDS VIEW
+    view==="cards"&&filteredGroups.map((grp,gi)=>React.createElement("div",{key:gi,style:{marginBottom:14}},
+      React.createElement("h3",{style:{fontSize:13,fontWeight:700,color:ctx,marginBottom:6,padding:"7px 10px",background:cbg,borderRadius:10,boxShadow:"0 1px 3px rgba(0,0,0,0.06)",border:"1px solid "+bd}},grp.title),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}},
+        grp.keys.map(key=>{const sec=SECTIONS[key];const ss=getSS(key);const isExp=exp===key;
+          return React.createElement("div",{key,style:{gridColumn:isExp?"1/-1":"auto"}},
+            React.createElement("div",{onClick:()=>setExp(isExp?null:key),style:{background:cbg,borderRadius:12,border:"2px solid "+sec.color+"22",overflow:"hidden",cursor:"pointer",boxShadow:isExp?"0 4px 16px "+sec.color+"22":"0 1px 3px rgba(0,0,0,0.06)"}},
+              React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"DD)",padding:"9px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+                React.createElement("div",null,React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:13}},sec.name),React.createElement("span",{style:{color:"rgba(255,255,255,0.8)",fontSize:10,marginLeft:5}},"("+sec.label+")")),
+                React.createElement("span",{style:{color:"#fff",fontSize:10,fontWeight:600}},sec.area)),
+              React.createElement("div",{style:{padding:"6px 10px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+                React.createElement("span",{style:{fontSize:10,color:stx}},sec.parcelles.length+" parcelles • "+sec.date),
+                React.createElement("div",{style:{display:"flex",gap:4}},
+                  ss.a>0&&React.createElement("span",{style:{background:"#FEF3C7",color:"#92400E",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},ss.a+" cas"),
+                  ss.g>0&&React.createElement("span",{className:"blink",style:{background:"#FEE2E2",color:"#991B1B",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},ss.g+" grave"),
+                  ss.a===0&&React.createElement("span",{style:{background:"#DCFCE7",color:"#166534",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}},"✓ Sain")))
+            ),
+            // Expanded parcelles
+            isExp&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5,marginTop:6,animation:"fadeIn 0.3s"}},
+              sec.parcelles.map(p=>{const st=getPS(key,p.id);const ac=getAC(key,p.id);const isGrave=st==="grave";
+                return React.createElement("div",{key:p.id,onClick:e=>{e.stopPropagation();onSelect(key,p)},className:isGrave?"blink":"",
+                  style:{background:dark?(isGrave?"#2A0000":"#1E1E1E"):stBg[st],border:"2px solid "+stBdr[st],borderRadius:10,padding:"9px 6px",textAlign:"center",cursor:"pointer",position:"relative"}},
+                  // Active count badge
+                  ac>0&&React.createElement("div",{style:{position:"absolute",top:-4,right:-4,background:"#EF4444",color:"#fff",fontSize:8,fontWeight:800,width:16,height:16,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}},ac),
+                  React.createElement("div",{style:{display:"flex",justifyContent:"center",alignItems:"center",gap:3}},
+                    dot(st),React.createElement("span",{style:{fontWeight:700,fontSize:12,color:ctx}},p.id)),
+                  React.createElement("div",{style:{fontSize:9,color:stx,marginTop:2}},p.area))})
+            )
+          )})
       )
-    ),
-
-    // Zoom controls
-    mapView === "map" && React.createElement("div", { style: { display: "flex", gap: 4, marginBottom: 8, justifyContent: "center" } },
-      React.createElement("button", { onClick: () => setZoom(z => Math.max(0.5, z - 0.25)), style: { width: 36, height: 36, borderRadius: 10, border: "1px solid " + bdr, background: cbg, fontSize: 18, cursor: "pointer", color: ctxt, fontWeight: 700 } }, "−"),
-      React.createElement("span", { style: { padding: "8px 12px", fontSize: 12, fontWeight: 600, color: stxt } }, Math.round(zoom * 100) + "%"),
-      React.createElement("button", { onClick: () => setZoom(z => Math.min(3, z + 0.25)), style: { width: 36, height: 36, borderRadius: 10, border: "1px solid " + bdr, background: cbg, fontSize: 18, cursor: "pointer", color: ctxt, fontWeight: 700 } }, "+"),
-      React.createElement("button", { onClick: () => setZoom(1), style: { padding: "8px 12px", borderRadius: 10, border: "1px solid " + bdr, background: cbg, fontSize: 11, cursor: "pointer", color: stxt, fontWeight: 600 } }, "Reset")
-    ),
-
-    // MAP VIEW
-    mapView === "map" && React.createElement("div", { ref: mapRef, style: { overflow: "auto", borderRadius: 14, border: "2px solid " + bdr, background: dark ? "#0A1A0D" : "#E8F5E9", padding: 4 } },
-      React.createElement("div", { style: { position: "relative", width: 80 * zoom + "vw", minWidth: 600 * zoom, height: 750 * zoom, transform: "scale(1)", transformOrigin: "top left" } },
-
-        // Section labels
-        SEC_LABELS.filter(sl => filter === "all" || SECTIONS[sl.sk]?.type === typeFilter[filter]).map((sl, i) =>
-          React.createElement("div", { key: "sl" + i, style: { position: "absolute", left: sl.x * 0.95 + "%", top: sl.y * 0.72 + "%", fontSize: 8 * zoom, fontWeight: 800, color: SECTIONS[sl.sk]?.color || "#666", whiteSpace: "nowrap", opacity: 0.8, zIndex: 1 } }, sl.label)
-        ),
-
-        // Infrastructure
-        INFRA.map((inf, i) =>
-          React.createElement("div", { key: "inf" + i, style: { position: "absolute", left: inf.x * 0.95 + "%", top: inf.y * 0.72 + "%", width: inf.w * 0.95 + "%", height: inf.h * 0.72 + "%", background: dark ? "#252525" : "#F1F5F9", border: "1px solid " + (dark ? "#444" : "#CBD5E1"), borderRadius: 4 * zoom, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 7 * zoom, color: dark ? "#9CA3AF" : inf.color, zIndex: 2 } },
-            React.createElement("span", { style: { fontSize: 10 * zoom } }, inf.icon),
-            React.createElement("span", { style: { fontWeight: 700, fontSize: 6 * zoom } }, inf.id)
-          )
-        ),
-
-        // Parcelles
-        filteredSections.map((mp, i) => {
-          const sec = SECTIONS[mp.sk]; if (!sec) return null;
-          const p = sec.parcelles[mp.pi]; if (!p) return null;
-          const st = getPS(mp.sk, p.id);
-          const ac = getActiveCount(mp.sk, p.id);
-          const isGrave = st === "grave";
-          const highlight = search && p.id.toLowerCase().includes(search.toLowerCase());
-
-          return React.createElement("div", { key: "p" + i, onClick: () => onSelect(mp.sk, p),
-            className: isGrave ? "blink-grave" : "",
-            style: { position: "absolute", left: mp.x * 0.95 + "%", top: mp.y * 0.72 + "%", width: mp.w * 0.95 + "%", height: mp.h * 0.72 + "%",
-              background: dark ? (st === "grave" ? "#3B0000" : st === "moyen" ? "#3B2000" : st === "faible" ? "#3B3200" : st === "resolved" ? "#1A1A1A" : "#0D2818") : statusBg[st],
-              border: (highlight ? "3px" : "2px") + " solid " + (highlight ? "#FBBF24" : statusBorder[st]),
-              borderRadius: 5 * zoom, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              zIndex: 5, transition: "all 0.15s", boxShadow: highlight ? "0 0 12px #FBBF24" : isGrave ? "0 0 8px rgba(239,68,68,0.5)" : "none"
-            }
-          },
-            // Status dot
-            React.createElement("div", { style: { position: "absolute", top: 2 * zoom, right: 2 * zoom, width: 7 * zoom, height: 7 * zoom, borderRadius: "50%", background: statusColor[st], boxShadow: isGrave ? "0 0 6px rgba(239,68,68,0.8)" : "none" } }),
-            // Active count badge
-            ac > 0 && React.createElement("div", { style: { position: "absolute", top: 1 * zoom, left: 1 * zoom, background: "#EF4444", color: "#fff", fontSize: 7 * zoom, fontWeight: 800, width: 14 * zoom, height: 14 * zoom, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6 } }, ac),
-            // Parcelle info
-            React.createElement("span", { style: { fontWeight: 800, fontSize: 9 * zoom, color: dark ? "#E5E7EB" : "#1F2937" } }, p.id),
-            React.createElement("span", { style: { fontSize: 6 * zoom, color: dark ? "#9CA3AF" : "#6B7280", fontWeight: 600 } }, p.area),
-            React.createElement("span", { style: { fontSize: 5 * zoom, color: sec.color, fontWeight: 700, opacity: 0.8 } }, sec.name)
-          );
-        })
-      )
-    ),
+    )),
 
     // TABLE VIEW
-    mapView === "table" && React.createElement("div", { style: { background: cbg, borderRadius: 14, border: "1px solid " + bdr, overflow: "hidden" } },
-      React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } },
-        React.createElement("thead", null,
-          React.createElement("tr", { style: { background: dark ? "#1A3A2A" : "#F0FDF4" } },
-            ["Section", "Parcelle", "Surface", "Type", "État", "Cas"].map((h, i) =>
-              React.createElement("th", { key: i, style: { padding: "10px 8px", textAlign: "left", fontWeight: 700, fontSize: 11, color: dark ? "#A7F3D0" : "#1B4332", borderBottom: "2px solid " + bdr } }, h)
-            )
-          )
-        ),
-        React.createElement("tbody", null,
-          Object.entries(SECTIONS).filter(([sk, sec]) => filter === "all" || sec.type === typeFilter[filter]).flatMap(([sk, sec]) =>
-            sec.parcelles.map((p, pi) => {
-              const st = getPS(sk, p.id);
-              const ac = getActiveCount(sk, p.id);
-              const matchSearch = !search || p.id.toLowerCase().includes(search.toLowerCase()) || sec.name.toLowerCase().includes(search.toLowerCase());
-              if (!matchSearch) return null;
-              return React.createElement("tr", { key: sk + p.id + pi, onClick: () => onSelect(sk, p), style: { cursor: "pointer", background: dark ? (st === "grave" ? "#2A0000" : "#1E1E1E") : statusBg[st], borderBottom: "1px solid " + bdr } },
-                React.createElement("td", { style: { padding: "8px", fontWeight: 700, color: sec.color, fontSize: 12 } }, sec.name),
-                React.createElement("td", { style: { padding: "8px", fontWeight: 600 } }, p.id),
-                React.createElement("td", { style: { padding: "8px", fontSize: 11, color: stxt } }, p.area),
-                React.createElement("td", { style: { padding: "8px" } },
-                  React.createElement("span", { style: { fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 8, background: sec.type === "hls" ? "#DBEAFE" : sec.type === "sol" ? "#FEE2E2" : "#DCFCE7", color: sec.type === "hls" ? "#1D4ED8" : sec.type === "sol" ? "#DC2626" : "#16A34A" } }, sec.label)
-                ),
-                React.createElement("td", { style: { padding: "8px" } },
-                  React.createElement("span", { style: { display: "inline-flex", alignItems: "center", gap: 4 } },
-                    React.createElement("span", { style: { width: 8, height: 8, borderRadius: "50%", background: statusColor[st] } }),
-                    React.createElement("span", { style: { fontSize: 10, fontWeight: 600, color: statusColor[st] } }, st === "clean" ? "Sain" : st === "resolved" ? "Résolu" : st.charAt(0).toUpperCase() + st.slice(1))
-                  )
-                ),
-                React.createElement("td", { style: { padding: "8px" } },
-                  ac > 0 ? React.createElement("span", { style: { background: "#FEE2E2", color: "#DC2626", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10 } }, ac) : React.createElement("span", { style: { fontSize: 10, color: stxt } }, "—")
-                )
-              );
+    view==="table"&&React.createElement("div",{style:{background:cbg,borderRadius:12,border:"1px solid "+bd,overflow:"auto"}},
+      React.createElement("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:11}},
+        React.createElement("thead",null,React.createElement("tr",{style:{background:dark?"#1A3A2A":"#F0FDF4"}},
+          ["Section","Parcelle","Surface","Type","État","Cas"].map((h,i)=>React.createElement("th",{key:i,style:{padding:"8px 6px",textAlign:"left",fontWeight:700,fontSize:10,color:dark?"#A7F3D0":"#1B4332",borderBottom:"2px solid "+bd}},h)))),
+        React.createElement("tbody",null,
+          Object.entries(SECTIONS).filter(([sk,sec])=>filter==="all"||sec.type===filter).flatMap(([sk,sec])=>
+            sec.parcelles.filter(p=>!search||p.id.toLowerCase().includes(search.toLowerCase())||sec.name.toLowerCase().includes(search.toLowerCase())).map((p,pi)=>{
+              const st=getPS(sk,p.id);const ac=getAC(sk,p.id);
+              return React.createElement("tr",{key:sk+p.id+pi,onClick:()=>onSelect(sk,p),style:{cursor:"pointer",background:dark?(st==="grave"?"#2A0000":"#1E1E1E"):stBg[st],borderBottom:"1px solid "+bd}},
+                React.createElement("td",{style:{padding:"7px 6px",fontWeight:700,color:sec.color,fontSize:11}},sec.name),
+                React.createElement("td",{style:{padding:"7px 6px",fontWeight:600}},p.id),
+                React.createElement("td",{style:{padding:"7px 6px",fontSize:10,color:stx}},p.area),
+                React.createElement("td",{style:{padding:"7px 6px"}},React.createElement("span",{style:{fontSize:9,fontWeight:600,padding:"2px 6px",borderRadius:6,background:sec.type==="hls"?"#DBEAFE":sec.type==="sol"?"#FEE2E2":"#DCFCE7",color:sec.type==="hls"?"#1D4ED8":sec.type==="sol"?"#DC2626":"#16A34A"}},sec.label)),
+                React.createElement("td",{style:{padding:"7px 6px"}},React.createElement("span",{style:{display:"flex",alignItems:"center",gap:3}},React.createElement("span",{style:{width:7,height:7,borderRadius:"50%",background:stClr[st]}}),React.createElement("span",{style:{fontSize:9,fontWeight:600}},st==="clean"?"Sain":st==="resolved"?"Résolu":st))),
+                React.createElement("td",{style:{padding:"7px 6px"}},ac>0?React.createElement("span",{style:{background:"#FEE2E2",color:"#DC2626",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:8}},ac):React.createElement("span",{style:{color:stx,fontSize:9}},"—")))
             })
-          ).filter(Boolean)
-        )
+          ).filter(Boolean))
       )
     ),
 
     // Legend
-    React.createElement("div", { style: { background: cbg, borderRadius: 12, padding: 10, marginTop: 8, border: "1px solid " + bdr } },
-      React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 10 } },
-        [{l:"Sain",c:"#22C55E"},{l:"Faible",c:"#EAB308"},{l:"Moyen",c:"#F97316"},{l:"Grave",c:"#EF4444"},{l:"Résolu",c:"#94A3B8"}].map(x =>
-          React.createElement("div", { key: x.l, style: { display: "flex", alignItems: "center", gap: 4 } },
-            React.createElement("span", { style: { width: 10, height: 10, borderRadius: "50%", background: x.c } }),
-            React.createElement("span", { style: { fontSize: 10, color: stxt } }, x.l)
-          )
-        ),
-        React.createElement("span", { style: { fontSize: 10, color: stxt, marginLeft: 8 } }, "💧Bassin ⚙️Fertigation 🏢Bureau")
+    React.createElement("div",{style:{background:cbg,borderRadius:10,padding:8,marginTop:8,border:"1px solid "+bd}},
+      React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
+        [{l:"Sain",c:"#22C55E"},{l:"Faible",c:"#EAB308"},{l:"Moyen",c:"#F97316"},{l:"Grave (clignote)",c:"#EF4444"},{l:"Résolu",c:"#94A3B8"}].map(x=>
+          React.createElement("div",{key:x.l,style:{display:"flex",alignItems:"center",gap:3}},
+            React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:x.c}}),
+            React.createElement("span",{style:{fontSize:9,color:stx}},x.l)))))
+  );
+}
+
+// ===== VISUAL PLAN (faithful PDF reproduction) =====
+function VisualPlan({bg,cbg,ctx,stx,bd,dark}){
+  const[zoom,setZoom]=useState(1);
+
+  // All blocks positioned to match the PDF layout
+  // Using percentage-based positioning on a container
+  const blocks=[
+    // Top row - Bureau, DE, DP, MS, P1
+    {id:"Bureau",x:37,y:0,w:9,h:3.5,c:"#64748B",ic:"🏢"},
+    {id:"D.E",x:46,y:0,w:5,h:3.5,c:"#78716C",ic:"📦"},
+    {id:"D.P",x:51,y:0,w:5,h:3.5,c:"#92400E",ic:"🧪"},
+    {id:"M.S",x:56,y:0,w:5,h:3.5,c:"#78716C",ic:"🏪"},
+    {id:"P1",x:61,y:0,w:4,h:3.5,c:"#0EA5E9",ic:"💧"},
+    {id:"E",x:66,y:1,w:3,h:3,c:"#6B7280",ic:"🚪"},
+
+    // AG1 - top center (blue)
+    {id:"V15\n0.68ha",x:20,y:2,w:6,h:5,c:"#3B82F6",sec:"AG1"},
+    {id:"P3",x:26,y:2,w:3,h:2.5,c:"#0EA5E9",ic:"💧"},
+    {id:"V13\n0.66ha",x:29,y:2,w:6,h:5,c:"#3B82F6",sec:"AG1"},
+    {id:"B1",x:35,y:5,w:4,h:3,c:"#0EA5E9",ic:"💧"},
+    {id:"B2",x:35,y:8.5,w:4,h:3,c:"#0EA5E9",ic:"💧"},
+    {id:"V16\n0.86ha",x:20,y:8,w:7,h:6,c:"#3B82F6",sec:"AG1"},
+    {id:"V14\n0.74ha",x:27,y:8,w:7,h:6,c:"#3B82F6",sec:"AG1"},
+    {id:"SF1",x:35,y:12,w:3.5,h:3,c:"#10B981",ic:"⚙️"},
+
+    // AG2 - top left (indigo)
+    {id:"V18\n1.00ha",x:2,y:3,w:8,h:6,c:"#6366F1",sec:"AG2"},
+    {id:"V17\n0.91ha",x:2,y:10,w:7,h:6,c:"#6366F1",sec:"AG2"},
+
+    // AG5 - below AG2 (pink)
+    {id:"V19\n0.70ha",x:2,y:17,w:7,h:5.5,c:"#E11D48",sec:"AG5"},
+    {id:"V6\n0.74ha",x:10,y:15,w:7,h:6,c:"#E11D48",sec:"AG5"},
+    {id:"V9\n0.63ha",x:10,y:21.5,w:7,h:6,c:"#E11D48",sec:"AG5"},
+    {id:"V5\n0.70ha",x:2,y:23,w:7,h:6,c:"#E11D48",sec:"AG5"},
+    {id:"SF2",x:35,y:15.5,w:3.5,h:3,c:"#10B981",ic:"⚙️"},
+    {id:"V10\n0.54ha",x:10,y:28,w:6,h:5,c:"#E11D48",sec:"AG5"},
+    {id:"V11\n0.66ha",x:16,y:28,w:6,h:5,c:"#E11D48",sec:"AG5"},
+
+    // AG4 - large center block (red)
+    {id:"V1\n0.42ha",x:39,y:7,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V2\n0.31ha",x:46,y:7,w:6,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"WC4",x:45,y:13,w:3,h:2.5,c:"#6B7280",ic:"🚻"},
+    {id:"V4\n0.42ha",x:39,y:13.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V12\n0.45ha",x:39,y:20,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V7\n0.45ha",x:46,y:20,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V13\n0.45ha",x:39,y:26,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V15\n0.55ha",x:46,y:26,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V20\n0.66ha",x:39,y:32.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V19\n0.78ha",x:46,y:32.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V21\n0.65ha",x:39,y:38.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+    {id:"V18\n0.79ha",x:46,y:38.5,w:7,h:5.5,c:"#DC2626",sec:"AG4"},
+
+    // A, P2
+    {id:"A",x:57,y:8,w:4,h:4,c:"#92400E",ic:"🔧"},
+    {id:"P2",x:57,y:13,w:3.5,h:3,c:"#0EA5E9",ic:"💧"},
+
+    // AG3 1.80ha - right (purple)
+    {id:"V3\n0.30ha",x:62,y:5,w:5,h:4.5,c:"#8B5CF6",sec:"AG3a"},
+    {id:"V5\n0.21ha",x:55,y:13,w:4,h:3.5,c:"#8B5CF6",sec:"AG3a"},
+    {id:"V12\n0.21ha",x:55,y:13,w:4,h:3.5,c:"#8B5CF6",sec:"AG3a"},
+    {id:"V6\n0.39ha",x:67,y:5,w:5,h:4.5,c:"#8B5CF6",sec:"AG3a"},
+    {id:"R",x:67,y:11,w:4,h:4,c:"#B45309",ic:"🍽️"},
+    {id:"V8\n0.20ha",x:67,y:16,w:4,h:4.5,c:"#8B5CF6",sec:"AG3a"},
+    {id:"V9\n0.30ha",x:71,y:16,w:4,h:4.5,c:"#8B5CF6",sec:"AG3a"},
+
+    // AG3 2.00ha
+    {id:"V11\n0.25ha",x:67,y:21.5,w:4,h:4.5,c:"#7C3AED",sec:"AG3b"},
+    {id:"V10\n0.36ha",x:71,y:21.5,w:4,h:4.5,c:"#7C3AED",sec:"AG3b"},
+    {id:"V16\n0.88ha",x:60,y:27,w:7,h:5.5,c:"#7C3AED",sec:"AG3b"},
+    {id:"V17\n0.79ha",x:67,y:27,w:7,h:5.5,c:"#7C3AED",sec:"AG3b"},
+
+    // S1 - Fraise (green)
+    {id:"V1\n0.68ha",x:39,y:45,w:7,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V2\n0.37ha",x:46,y:45,w:6,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V3\n0.72ha",x:52,y:45,w:6,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V4\n0.80ha",x:39,y:51,w:7,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V5\n0.75ha",x:46,y:51,w:6,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V6\n0.29ha",x:52,y:51,w:5,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V7\n0.87ha",x:39,y:57,w:7,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V8\n0.76ha",x:46,y:57,w:6,h:5.5,c:"#16A34A",sec:"S1"},
+    {id:"V9\n0.26ha",x:52,y:57,w:5,h:5.5,c:"#16A34A",sec:"S1"},
+
+    // S2 (darker green)
+    {id:"V10\n0.77ha",x:30,y:64,w:8,h:5.5,c:"#059669",sec:"S2"},
+    {id:"V11\n0.85ha",x:42,y:64,w:8,h:5.5,c:"#059669",sec:"S2"},
+    {id:"V12\n0.66ha",x:18,y:70,w:6,h:5,c:"#059669",sec:"S2"},
+    {id:"V14\n0.67ha",x:18,y:70,w:6,h:5,c:"#059669",sec:"S2"},
+    {id:"V13\n1.52ha",x:24,y:70,w:12,h:5,c:"#059669",sec:"S2"},
+    {id:"V16\n0.66ha",x:18,y:76,w:6,h:5,c:"#059669",sec:"S2"},
+    {id:"V15\n1.50ha",x:24,y:76,w:12,h:5,c:"#059669",sec:"S2"},
+    {id:"V18\n0.60ha",x:18,y:82,w:6,h:5,c:"#059669",sec:"S2"},
+    {id:"V17\n1.50ha",x:24,y:82,w:12,h:5,c:"#059669",sec:"S2"},
+
+    // S3 (teal)
+    {id:"V20\n0.70ha",x:18,y:88,w:7,h:5.5,c:"#0D9488",sec:"S3"},
+    {id:"V19\n1.00ha",x:25,y:88,w:10,h:5.5,c:"#0D9488",sec:"S3"},
+
+    // AG6 - far right (orange)
+    {id:"V31\n0.83ha",x:66,y:68,w:7,h:5.5,c:"#EA580C",sec:"AG6"},
+    {id:"V32\n0.66ha",x:73,y:68,w:6,h:5.5,c:"#EA580C",sec:"AG6"},
+    {id:"V34\n0.64ha",x:66,y:74,w:7,h:5.5,c:"#EA580C",sec:"AG6"},
+    {id:"V33\n0.59ha",x:73,y:74,w:6,h:5.5,c:"#EA580C",sec:"AG6"},
+    {id:"V35\n0.73ha",x:66,y:80,w:7,h:5.5,c:"#EA580C",sec:"AG6"},
+    {id:"V36\n0.52ha",x:73,y:80,w:6,h:5.5,c:"#EA580C",sec:"AG6"},
+  ];
+
+  const secLabels=[
+    {t:"P-AG1 : 3.00 ha",x:20,y:0.5,c:"#3B82F6"},
+    {t:"P-AG2 : 2.60 ha",x:2,y:1,c:"#6366F1"},
+    {t:"P-AG5 : 2.70 ha",x:10,y:14,c:"#E11D48"},
+    {t:"P-AG4 : 6 ha",x:39,y:31.5,c:"#DC2626"},
+    {t:"P-AG3 : 1.80 ha",x:62,y:3,c:"#8B5CF6"},
+    {t:"P-AG3 : 2.0 ha",x:67,y:20,c:"#7C3AED"},
+    {t:"S1 : 5.50 ha",x:52,y:43,c:"#16A34A"},
+    {t:"S2 : 6.6 ha",x:18,y:68,c:"#059669"},
+    {t:"S3 : 3.8 ha",x:18,y:86.5,c:"#0D9488"},
+    {t:"P-AG6 : 4.00 ha",x:66,y:66.5,c:"#EA580C"},
+  ];
+
+  return React.createElement("div",null,
+    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 10px"}},"🏗️ Plan Ferme Zaouia « AGRO BERRY »"),
+    React.createElement("p",{style:{fontSize:11,color:stx,marginBottom:10}},"Reproduction fidèle du plan — Total net : 38 ha"),
+
+    // Zoom
+    React.createElement("div",{style:{display:"flex",gap:4,marginBottom:8,justifyContent:"center"}},
+      React.createElement("button",{onClick:()=>setZoom(z=>Math.max(0.5,z-0.2)),style:{width:34,height:34,borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:16,cursor:"pointer",color:ctx,fontWeight:700}},"−"),
+      React.createElement("span",{style:{padding:"8px 10px",fontSize:11,fontWeight:600,color:stx}},Math.round(zoom*100)+"%"),
+      React.createElement("button",{onClick:()=>setZoom(z=>Math.min(3,z+0.2)),style:{width:34,height:34,borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:16,cursor:"pointer",color:ctx,fontWeight:700}},"+"),
+      React.createElement("button",{onClick:()=>setZoom(1),style:{padding:"8px 10px",borderRadius:8,border:"1px solid "+bd,background:cbg,fontSize:10,cursor:"pointer",color:stx,fontWeight:600}},"Reset")),
+
+    // Plan
+    React.createElement("div",{style:{overflow:"auto",borderRadius:14,border:"2px solid "+bd,background:dark?"#0A1A0D":"#E8F5E9"}},
+      React.createElement("div",{style:{position:"relative",width:Math.max(700,700*zoom),height:Math.max(680,680*zoom),padding:8}},
+
+        // Title bar
+        React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:20*zoom,background:"linear-gradient(90deg,#2D6A4F,#40916C)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"6px 6px 0 0",zIndex:10}},
+          React.createElement("span",{style:{color:"#fff",fontWeight:800,fontSize:9*zoom,letterSpacing:1}},"PLAN FERME ZAOUIA « AGRO BERRY »")),
+
+        // Section labels
+        secLabels.map((sl,i)=>React.createElement("div",{key:"sl"+i,style:{position:"absolute",left:sl.x*0.82*zoom+"%",top:(sl.y*0.82+3)*zoom+"%",fontSize:7*zoom,fontWeight:800,color:sl.c,whiteSpace:"nowrap",zIndex:8}},sl.t)),
+
+        // Blocks
+        blocks.map((b,i)=>{
+          const isSec=!!b.sec;const isInfra=!!b.ic;
+          const lines=b.id.split("\n");
+          return React.createElement("div",{key:"b"+i,style:{position:"absolute",left:b.x*0.82*zoom+"%",top:(b.y*0.82+3)*zoom+"%",width:b.w*0.82*zoom+"%",height:b.h*0.82*zoom+"%",
+            background:isSec?(dark?b.c+"33":b.c+"22"):(dark?"#252525":"#F1F5F9"),
+            border:"1.5px solid "+(isSec?b.c+"88":(dark?"#444":"#CBD5E1")),
+            borderRadius:3*zoom,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:5,
+            boxShadow:isSec?"inset 0 0 0 1px "+b.c+"22":"none"}},
+            isInfra&&React.createElement("span",{style:{fontSize:8*zoom}},b.ic),
+            lines.map((l,li)=>React.createElement("span",{key:li,style:{fontSize:(li===0?7.5:5.5)*zoom,fontWeight:li===0?700:500,color:isSec?b.c:(dark?"#9CA3AF":b.c||"#64748B"),lineHeight:1.2}},l))
+          )})
       )
+    ),
+
+    // Legend
+    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:12,marginTop:10,border:"1px solid "+bd}},
+      React.createElement("h4",{style:{fontSize:12,fontWeight:700,marginBottom:8}},"Légende"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6,fontSize:10,color:stx}},
+        ["💧 B : Bassin","🧪 D.P : Dépôt produits phyto","📦 D.E : Dépôt engrais","💧 P : Puits","⚙️ S.F : Station fertigation","🏪 M : Magasin stockage","🔧 A : Atelier","🍽️ R : Réfectoire","🚪 E : Entrée principale","🚻 WC : Toilettes"].map((l,i)=>
+          React.createElement("span",{key:i},l))),
+      React.createElement("div",{style:{marginTop:10,display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:4,fontSize:10}},
+        [{n:"AG1-AG3 (HLS)",c:"#3B82F6"},{n:"AG4-AG6 (Sol)",c:"#DC2626"},{n:"S1-S3 (Fraise)",c:"#16A34A"},{n:"Infrastructure",c:"#64748B"}].map((x,i)=>
+          React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:4}},
+            React.createElement("span",{style:{width:12,height:12,borderRadius:3,background:x.c+"33",border:"2px solid "+x.c}}),
+            React.createElement("span",{style:{color:stx}},x.n))))
     )
   );
 }
 
 // ===== PARCELLE MODAL =====
-function ParcelleModal({ sec, sk, par, records, notes, onClose, onAdd, onDel, onTog, onAddN, dark, cbg, ctxt, stxt, bdr }) {
-  const [tab, setTab] = useState("records");
-  const diseases = sec.type === "fraise" ? DISEASES_F : DISEASES_M;
-  const active = records.filter(r => !r.res);
-  const resolved = records.filter(r => r.res);
+function Modal({sec,sk,par,records,onClose,onAdd,onDel,onTog,dark,cbg,ctx,stx,bd}){
+  const[tab,setTab]=useState("records");
+  const diseases=sec.type==="fraise"?DIS_F:DIS_M;
+  const active=records.filter(r=>!r.res);
+  const resolved=records.filter(r=>r.res);
 
-  return React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 1000, animation: "fadeIn 0.2s" } },
-    React.createElement("div", { onClick: onClose, style: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" } }),
-    React.createElement("div", { style: { position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "90vh", background: cbg, borderRadius: "20px 20px 0 0", overflow: "hidden", animation: "slideUp 0.3s ease", display: "flex", flexDirection: "column" } },
-      // Header
-      React.createElement("div", { style: { background: "linear-gradient(135deg, " + sec.color + ", " + sec.color + "CC)", padding: "14px 18px", flexShrink: 0 } },
-        React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
-          React.createElement("div", null,
-            React.createElement("h2", { style: { color: "#fff", fontSize: 20, fontWeight: 800, margin: 0 } }, sec.name + " — " + par.id),
-            React.createElement("p", { style: { color: "rgba(255,255,255,0.85)", fontSize: 12, margin: "2px 0 0" } }, sec.fullName + " • " + par.area)
-          ),
-          React.createElement("button", { onClick: onClose, style: { background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", width: 30, height: 30, borderRadius: 10, fontSize: 16, cursor: "pointer" } }, "✕")
-        ),
-        React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 8 } },
-          React.createElement("span", { style: { background: "rgba(255,255,255,0.2)", color: "#fff", padding: "3px 8px", borderRadius: 8, fontSize: 10, fontWeight: 600 } }, active.length + " actif" + (active.length > 1 ? "s" : "")),
-          React.createElement("span", { style: { background: "rgba(255,255,255,0.2)", color: "#fff", padding: "3px 8px", borderRadius: 8, fontSize: 10, fontWeight: 600 } }, resolved.length + " résolu" + (resolved.length > 1 ? "s" : ""))
-        )
-      ),
-      // Tabs
-      React.createElement("div", { style: { display: "flex", borderBottom: "1px solid " + bdr, flexShrink: 0 } },
-        [{k:"records",l:"🦠 Maladies"},{k:"add",l:"➕ Ajouter"}].map(t =>
-          React.createElement("button", { key: t.k, onClick: () => setTab(t.k), style: { flex: 1, padding: 10, border: "none", borderBottom: tab === t.k ? "3px solid " + sec.color : "3px solid transparent", background: tab === t.k ? sec.color + "11" : "transparent", color: tab === t.k ? sec.color : stxt, fontWeight: tab === t.k ? 700 : 500, fontSize: 12, cursor: "pointer" } }, t.l)
-        )
-      ),
-      // Content
-      React.createElement("div", { style: { flex: 1, overflow: "auto", padding: 14 } },
-        tab === "records" && (records.length === 0 ?
-          React.createElement("div", { style: { textAlign: "center", padding: "36px 20px", color: stxt } }, React.createElement("div", { style: { fontSize: 44 } }, "✅"), React.createElement("p", { style: { fontWeight: 600, fontSize: 14 } }, "Parcelle saine")) :
-          React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-            records.map(r => React.createElement("div", { key: r.id, style: { background: r.res ? (dark ? "#1A1A1A" : "#F8FAFC") : (dark ? (SC[r.sev]||{}).bg + "22" : (SC[r.sev]||{}).bg), border: "1px solid " + (r.res ? bdr : (SC[r.sev]||{}).border || bdr), borderRadius: 12, padding: 12, opacity: r.res ? 0.6 : 1 } },
-              React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 6 } },
-                React.createElement("div", null,
-                  React.createElement("span", { style: { fontWeight: 700, fontSize: 13 } }, r.dis),
-                  React.createElement("span", { style: { marginLeft: 6, fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 6, background: (SC[r.sev]||{}).bg, color: (SC[r.sev]||{}).text, border: "1px solid " + (SC[r.sev]||{}).border } }, r.sev),
-                  r.res && React.createElement("span", { style: { marginLeft: 4, fontSize: 9, color: "#16A34A", fontWeight: 600 } }, "✓")
-                )
-              ),
-              React.createElement("div", { style: { fontSize: 11, color: stxt } },
-                React.createElement("div", null, "💊 " + r.prod + " — " + r.dose),
-                React.createElement("div", null, "📅 " + fmtD(r.tdate)),
-                r.obs && React.createElement("div", { style: { fontStyle: "italic", marginTop: 2 } }, "📝 " + r.obs),
-                React.createElement("div", { style: { fontSize: 9, color: stxt, marginTop: 2 } }, fmtDT(r.at))
-              ),
-              React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 8 } },
-                React.createElement("button", { onClick: () => onTog(r.id), style: { flex: 1, padding: 7, borderRadius: 8, border: "1px solid " + bdr, background: r.res ? "#FEF3C7" : "#DCFCE7", fontSize: 10, fontWeight: 600, cursor: "pointer", color: r.res ? "#92400E" : "#166534" } }, r.res ? "↩️ Réactiver" : "✅ Résolu"),
-                React.createElement("button", { onClick: () => { if (confirm("Supprimer ?")) onDel(r.id); }, style: { padding: "7px 10px", borderRadius: 8, border: "1px solid #FECACA", background: "#FEF2F2", fontSize: 10, fontWeight: 600, cursor: "pointer", color: "#DC2626" } }, "🗑️")
-              )
-            ))
-          )
-        ),
-        tab === "add" && React.createElement(AddForm, { sk, pid: par.id, diseases, onSubmit: onAdd, color: sec.color, dark, cbg, ctxt, stxt, bdr })
-      )
+  return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:1000,animation:"fadeIn 0.2s"}},
+    React.createElement("div",{onClick:onClose,style:{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}}),
+    React.createElement("div",{style:{position:"absolute",bottom:0,left:0,right:0,maxHeight:"90vh",background:cbg,borderRadius:"20px 20px 0 0",overflow:"hidden",animation:"slideUp 0.3s",display:"flex",flexDirection:"column"}},
+      React.createElement("div",{style:{background:"linear-gradient(135deg,"+sec.color+","+sec.color+"CC)",padding:"14px 18px",flexShrink:0}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},
+          React.createElement("div",null,React.createElement("h2",{style:{color:"#fff",fontSize:20,fontWeight:800,margin:0}},sec.name+" — "+par.id),React.createElement("p",{style:{color:"rgba(255,255,255,0.85)",fontSize:12,margin:"2px 0 0"}},sec.fullName+" • "+par.area)),
+          React.createElement("button",{onClick:onClose,style:{background:"rgba(255,255,255,0.2)",border:"none",color:"#fff",width:30,height:30,borderRadius:10,fontSize:16,cursor:"pointer"}},"✕")),
+        React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
+          React.createElement("span",{style:{background:"rgba(255,255,255,0.2)",color:"#fff",padding:"3px 8px",borderRadius:8,fontSize:10,fontWeight:600}},active.length+" actif"+(active.length>1?"s":"")),
+          React.createElement("span",{style:{background:"rgba(255,255,255,0.2)",color:"#fff",padding:"3px 8px",borderRadius:8,fontSize:10,fontWeight:600}},resolved.length+" résolu"+(resolved.length>1?"s":"")))),
+      React.createElement("div",{style:{display:"flex",borderBottom:"1px solid "+bd,flexShrink:0}},
+        [{k:"records",l:"🦠 Maladies"},{k:"add",l:"➕ Ajouter"}].map(t=>React.createElement("button",{key:t.k,onClick:()=>setTab(t.k),style:{flex:1,padding:10,border:"none",borderBottom:tab===t.k?"3px solid "+sec.color:"3px solid transparent",background:tab===t.k?sec.color+"11":"transparent",color:tab===t.k?sec.color:stx,fontWeight:tab===t.k?700:500,fontSize:12,cursor:"pointer"}},t.l))),
+      React.createElement("div",{style:{flex:1,overflow:"auto",padding:14}},
+        tab==="records"&&(records.length===0?
+          React.createElement("div",{style:{textAlign:"center",padding:"36px",color:stx}},React.createElement("div",{style:{fontSize:44}},"✅"),React.createElement("p",{style:{fontWeight:600}},"Parcelle saine")):
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+            records.map(r=>React.createElement("div",{key:r.id,style:{background:r.res?(dark?"#1A1A1A":"#F8FAFC"):(dark?(SC[r.sev]||{}).bg+"22":(SC[r.sev]||{}).bg),border:"1px solid "+(r.res?bd:(SC[r.sev]||{}).border||bd),borderRadius:12,padding:12,opacity:r.res?0.6:1}},
+              React.createElement("div",{style:{marginBottom:6}},
+                React.createElement("span",{style:{fontWeight:700,fontSize:13}},r.dis),
+                React.createElement("span",{style:{marginLeft:6,fontSize:10,fontWeight:700,padding:"2px 6px",borderRadius:6,background:(SC[r.sev]||{}).bg,color:(SC[r.sev]||{}).text,border:"1px solid "+(SC[r.sev]||{}).border}},r.sev),
+                r.res&&React.createElement("span",{style:{marginLeft:4,fontSize:9,color:"#16A34A",fontWeight:600}},"✓")),
+              React.createElement("div",{style:{fontSize:11,color:stx}},
+                React.createElement("div",null,"💊 "+r.prod+" — "+r.dose),
+                React.createElement("div",null,"📅 "+fD(r.tdate)),
+                r.obs&&React.createElement("div",{style:{fontStyle:"italic",marginTop:2}},"📝 "+r.obs),
+                React.createElement("div",{style:{fontSize:9,marginTop:2}},fDT(r.at))),
+              React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
+                React.createElement("button",{onClick:()=>onTog(r.id),style:{flex:1,padding:7,borderRadius:8,border:"1px solid "+bd,background:r.res?"#FEF3C7":"#DCFCE7",fontSize:10,fontWeight:600,cursor:"pointer",color:r.res?"#92400E":"#166534"}},r.res?"↩️ Réactiver":"✅ Résolu"),
+                React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDel(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")))))),
+        tab==="add"&&React.createElement(AddForm,{sk,pid:par.id,diseases,onSubmit:onAdd,color:sec.color,dark,cbg,ctx,stx,bd}))
     )
   );
 }
 
 // ===== ADD FORM =====
-function AddForm({ sk, pid, diseases, onSubmit, color, dark, cbg, ctxt, stxt, bdr }) {
-  const [dis, setDis] = useState("");
-  const [cust, setCust] = useState("");
-  const [sev, setSev] = useState("");
-  const [prod, setProd] = useState("");
-  const [dose, setDose] = useState("");
-  const [tdate, setTdate] = useState(new Date().toISOString().split("T")[0]);
-  const [obs, setObs] = useState("");
+function AddForm({sk,pid,diseases,onSubmit,color,dark,cbg,ctx,stx,bd}){
+  const[dis,setDis]=useState("");const[cust,setCust]=useState("");const[sev,setSev]=useState("");
+  const[prod,setProd]=useState("");const[dose,setDose]=useState("");
+  const[tdate,setTdate]=useState(new Date().toISOString().split("T")[0]);const[obs,setObs]=useState("");
 
-  const submit = () => {
-    const d = dis === "__c" ? cust : dis;
-    if (!d || !sev || !prod || !dose) { alert("Remplissez les champs obligatoires"); return; }
-    onSubmit({ sk, pid, dis: d, sev, prod, dose, tdate, obs, res: false });
-    setDis(""); setCust(""); setSev(""); setProd(""); setDose(""); setObs("");
-  };
+  const go=()=>{const d=dis==="__c"?cust:dis;if(!d||!sev||!prod||!dose){alert("Remplissez les champs *");return}
+    onSubmit({sk,pid,dis:d,sev,prod,dose,tdate,obs,res:false});setDis("");setCust("");setSev("");setProd("");setDose("");setObs("")};
 
-  const is = { width: "100%", padding: "11px 12px", borderRadius: 10, border: "2px solid " + bdr, fontSize: 13, outline: "none", background: cbg, color: ctxt };
+  const is={width:"100%",padding:"11px 12px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx};
 
-  return React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 14 } },
-    React.createElement("h3", { style: { fontSize: 15, fontWeight: 700, margin: 0 } }, "Nouveau cas"),
-    React.createElement("div", null,
-      React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "🦠 Maladie *"),
-      React.createElement("select", { value: dis, onChange: e => setDis(e.target.value), style: { ...is, cursor: "pointer" } },
-        React.createElement("option", { value: "" }, "— Sélectionner —"),
-        diseases.map(d => React.createElement("option", { key: d, value: d }, d)),
-        React.createElement("option", { value: "__c" }, "✏️ Autre")
-      ),
-      dis === "__c" && React.createElement("input", { value: cust, onChange: e => setCust(e.target.value), placeholder: "Nom...", style: { ...is, marginTop: 6 } })
-    ),
-    React.createElement("div", null,
-      React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "⚠️ Gravité *"),
-      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6 } },
-        ["Faible","Moyen","Grave"].map(s => React.createElement("button", { key: s, onClick: () => setSev(s), style: { padding: "10px 6px", borderRadius: 10, border: "2px solid " + (sev === s ? SC[s].border : bdr), background: sev === s ? SC[s].bg : cbg, color: sev === s ? SC[s].text : stxt, fontWeight: 700, fontSize: 12, cursor: "pointer" } }, (s === "Faible" ? "🟡" : s === "Moyen" ? "🟠" : "🔴") + " " + s))
-      )
-    ),
-    React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "💊 Produit *"), React.createElement("input", { value: prod, onChange: e => setProd(e.target.value), placeholder: "Ex: Soufre...", style: is })),
-    React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "📏 Dose *"), React.createElement("input", { value: dose, onChange: e => setDose(e.target.value), placeholder: "Ex: 5 kg/ha...", style: is })),
-    React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "📅 Date *"), React.createElement("input", { type: "date", value: tdate, onChange: e => setTdate(e.target.value), style: is })),
-    React.createElement("div", null, React.createElement("label", { style: { display: "block", fontSize: 11, fontWeight: 600, color: stxt, marginBottom: 4 } }, "📝 Observation"), React.createElement("textarea", { value: obs, onChange: e => setObs(e.target.value), placeholder: "Notes...", rows: 2, style: { ...is, resize: "vertical" } })),
-    React.createElement("button", { onClick: submit, style: { padding: 13, borderRadius: 12, border: "none", background: "linear-gradient(135deg," + color + "," + color + "CC)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" } }, "✓ Enregistrer")
-  );
+  return React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:14}},
+    React.createElement("h3",{style:{fontSize:15,fontWeight:700,margin:0}},"Nouveau cas"),
+    React.createElement("div",null,
+      React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"🦠 Maladie *"),
+      React.createElement("select",{value:dis,onChange:e=>setDis(e.target.value),style:{...is,cursor:"pointer"}},
+        React.createElement("option",{value:""},"— Sélectionner —"),diseases.map(d=>React.createElement("option",{key:d,value:d},d)),React.createElement("option",{value:"__c"},"✏️ Autre")),
+      dis==="__c"&&React.createElement("input",{value:cust,onChange:e=>setCust(e.target.value),placeholder:"Nom...",style:{...is,marginTop:6}})),
+    React.createElement("div",null,
+      React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"⚠️ Gravité *"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}},
+        ["Faible","Moyen","Grave"].map(s=>React.createElement("button",{key:s,onClick:()=>setSev(s),style:{padding:"10px 6px",borderRadius:10,border:"2px solid "+(sev===s?SC[s].border:bd),background:sev===s?SC[s].bg:cbg,color:sev===s?SC[s].text:stx,fontWeight:700,fontSize:12,cursor:"pointer"}},(s==="Faible"?"🟡":s==="Moyen"?"🟠":"🔴")+" "+s)))),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"💊 Produit *"),React.createElement("input",{value:prod,onChange:e=>setProd(e.target.value),placeholder:"Ex: Soufre...",style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📏 Dose *"),React.createElement("input",{value:dose,onChange:e=>setDose(e.target.value),placeholder:"Ex: 5 kg/ha...",style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📅 Date *"),React.createElement("input",{type:"date",value:tdate,onChange:e=>setTdate(e.target.value),style:is})),
+    React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📝 Observation"),React.createElement("textarea",{value:obs,onChange:e=>setObs(e.target.value),placeholder:"Notes...",rows:2,style:{...is,resize:"vertical"}})),
+    React.createElement("button",{onClick:go,style:{padding:13,borderRadius:12,border:"none",background:"linear-gradient(135deg,"+color+","+color+"CC)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}},"✓ Enregistrer"));
 }
 
 // ===== HISTORY =====
-function HistoryView({ records, filter, setFilter, onDel, onTog, dark, cbg, ctxt, stxt, bdr }) {
-  const filtered = filter === "all" ? records : records.filter(r => SECTIONS[r.sk]?.type === (filter === "hls" ? "hls" : filter === "sol" ? "sol" : "fraise"));
-  return React.createElement("div", null,
-    React.createElement("h2", { style: { fontSize: 16, fontWeight: 800, margin: "0 0 10px" } }, "📋 Historique"),
-    React.createElement("div", { style: { display: "flex", gap: 4, overflow: "auto", marginBottom: 10 } },
-      [{k:"all",l:"Tout ("+records.length+")"},{k:"hls",l:"HLS"},{k:"sol",l:"Sol"},{k:"fraise",l:"Fraise"}].map(f =>
-        React.createElement("button", { key: f.k, onClick: () => setFilter(f.k), style: { padding: "5px 10px", borderRadius: 16, border: filter === f.k ? "2px solid #2D6A4F" : "1px solid " + bdr, background: filter === f.k ? (dark ? "#1A3A2A" : "#F0FDF4") : cbg, color: filter === f.k ? (dark ? "#6EE7B7" : "#2D6A4F") : stxt, fontSize: 10, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" } }, f.l)
-      )
-    ),
-    filtered.length === 0 ? React.createElement("div", { style: { textAlign: "center", padding: "40px", color: stxt } }, React.createElement("div", { style: { fontSize: 40 } }, "📋"), React.createElement("p", { style: { fontWeight: 600 } }, "Aucun enregistrement")) :
-    React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
-      filtered.map(r => {
-        const sec = SECTIONS[r.sk];
-        return React.createElement("div", { key: r.id, style: { background: cbg, borderRadius: 12, border: "1px solid " + bdr, padding: 12, borderLeft: "4px solid " + (sec?.color || "#666"), opacity: r.res ? 0.55 : 1 } },
-          React.createElement("div", { style: { display: "flex", justifyContent: "space-between" } },
-            React.createElement("span", { style: { fontWeight: 700, fontSize: 12, color: sec?.color } }, (sec?.name || "?") + " — " + r.pid + (r.res ? " ✓" : "")),
-            React.createElement("span", { style: { fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 6, background: (SC[r.sev]||{}).bg, color: (SC[r.sev]||{}).text } }, r.sev)
-          ),
-          React.createElement("div", { style: { fontSize: 13, fontWeight: 600, margin: "4px 0 2px" } }, r.dis),
-          React.createElement("div", { style: { fontSize: 11, color: stxt } }, "💊 " + r.prod + " — " + r.dose),
-          React.createElement("div", { style: { fontSize: 10, color: stxt, marginTop: 2 } }, "📅 " + fmtD(r.tdate)),
-          React.createElement("div", { style: { display: "flex", gap: 4, marginTop: 6 } },
-            React.createElement("button", { onClick: () => onTog(r.id), style: { padding: "5px 8px", borderRadius: 6, border: "1px solid " + bdr, background: r.res ? "#FEF3C7" : "#DCFCE7", fontSize: 9, fontWeight: 600, cursor: "pointer", color: r.res ? "#92400E" : "#166534" } }, r.res ? "↩️" : "✅"),
-            React.createElement("button", { onClick: () => { if (confirm("Supprimer ?")) onDel(r.id); }, style: { padding: "5px 8px", borderRadius: 6, border: "1px solid #FECACA", background: "#FEF2F2", fontSize: 9, fontWeight: 600, cursor: "pointer", color: "#DC2626" } }, "🗑️")
-          )
-        );
-      })
-    )
-  );
+function History({bg,cbg,ctx,stx,bd,dark,records,filter,setFilter,onDel,onTog}){
+  const filtered=filter==="all"?records:records.filter(r=>SECTIONS[r.sk]?.type===filter);
+  return React.createElement("div",null,
+    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 10px"}},"📋 Historique"),
+    React.createElement("div",{style:{display:"flex",gap:4,overflow:"auto",marginBottom:10}},
+      [{k:"all",l:"Tout ("+records.length+")"},{k:"hls",l:"HLS"},{k:"sol",l:"Sol"},{k:"fraise",l:"Fraise"}].map(f=>
+        React.createElement("button",{key:f.k,onClick:()=>setFilter(f.k),style:{padding:"5px 10px",borderRadius:16,border:filter===f.k?"2px solid #2D6A4F":"1px solid "+bd,background:filter===f.k?(dark?"#1A3A2A":"#F0FDF4"):cbg,color:filter===f.k?(dark?"#6EE7B7":"#2D6A4F"):stx,fontSize:10,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap"}},f.l))),
+    filtered.length===0?React.createElement("div",{style:{textAlign:"center",padding:"40px",color:stx}},React.createElement("div",{style:{fontSize:40}},"📋"),React.createElement("p",{style:{fontWeight:600}},"Aucun enregistrement")):
+    React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
+      filtered.map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,style:{background:cbg,borderRadius:12,border:"1px solid "+bd,padding:12,borderLeft:"4px solid "+(sec?.color||"#666"),opacity:r.res?0.55:1}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between"}},React.createElement("span",{style:{fontWeight:700,fontSize:12,color:sec?.color}},(sec?.name||"?")+" — "+r.pid+(r.res?" ✓":"")),React.createElement("span",{style:{fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:6,background:(SC[r.sev]||{}).bg,color:(SC[r.sev]||{}).text}},r.sev)),
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,margin:"4px 0 2px"}},r.dis),
+        React.createElement("div",{style:{fontSize:11,color:stx}},"💊 "+r.prod+" — "+r.dose),
+        React.createElement("div",{style:{fontSize:10,color:stx,marginTop:2}},"📅 "+fD(r.tdate)),
+        React.createElement("div",{style:{display:"flex",gap:4,marginTop:6}},
+          React.createElement("button",{onClick:()=>onTog(r.id),style:{padding:"5px 8px",borderRadius:6,border:"1px solid "+bd,background:r.res?"#FEF3C7":"#DCFCE7",fontSize:9,fontWeight:600,cursor:"pointer",color:r.res?"#92400E":"#166534"}},r.res?"↩️":"✅"),
+          React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDel(r.id)},style:{padding:"5px 8px",borderRadius:6,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:9,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")))})));
 }
 
 // ===== STATS =====
-function StatsView({ records, dark, cbg, ctxt, stxt }) {
-  const active = records.filter(r => !r.res);
-  const resolved = records.filter(r => r.res);
-  const bySev = { Faible: 0, Moyen: 0, Grave: 0 };
-  active.forEach(r => { if (bySev[r.sev] !== undefined) bySev[r.sev]++; });
-  const byDis = {};
-  active.forEach(r => { byDis[r.dis] = (byDis[r.dis] || 0) + 1; });
-  const topD = Object.entries(byDis).sort((a, b) => b[1] - a[1]).slice(0, 5);
+function Stats({bg,cbg,ctx,stx,dark,records}){
+  const active=records.filter(r=>!r.res),resolved=records.filter(r=>r.res);
+  const bySev={Faible:0,Moyen:0,Grave:0};active.forEach(r=>{if(bySev[r.sev]!==undefined)bySev[r.sev]++});
+  const byDis={};active.forEach(r=>{byDis[r.dis]=(byDis[r.dis]||0)+1});
+  const topD=Object.entries(byDis).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const bd=dark?"#333":"#E5E7EB";
 
-  return React.createElement("div", null,
-    React.createElement("h2", { style: { fontSize: 16, fontWeight: 800, margin: "0 0 12px" } }, "📊 Statistiques"),
-    React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 14 } },
-      [{l:"Total",v:records.length,i:"📊",bg:"#F0FDF4",c:"#16A34A",db:"#0D2818"},{l:"Actifs",v:active.length,i:"⚠️",bg:"#FEF9C3",c:"#CA8A04",db:"#2A2000"},{l:"Résolus",v:resolved.length,i:"✅",bg:"#DBEAFE",c:"#2563EB",db:"#001A2A"},{l:"Résolution",v:records.length?Math.round(resolved.length/records.length*100)+"%":"—",i:"📈",bg:"#F3E8FF",c:"#7C3AED",db:"#1A0028"}].map((c,i) =>
-        React.createElement("div", { key: i, style: { background: dark ? c.db : c.bg, borderRadius: 12, padding: 12, textAlign: "center" } },
-          React.createElement("div", { style: { fontSize: 18 } }, c.i),
-          React.createElement("div", { style: { fontSize: 22, fontWeight: 800, color: c.c } }, c.v),
-          React.createElement("div", { style: { fontSize: 10, fontWeight: 600, color: c.c } }, c.l)
-        )
-      )
-    ),
-    React.createElement("div", { style: { background: cbg, borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid " + (dark ? "#333" : "#E5E7EB") } },
-      React.createElement("h3", { style: { fontSize: 13, fontWeight: 700, margin: "0 0 10px" } }, "Par gravité"),
-      ["Grave","Moyen","Faible"].map(s => { const c = bySev[s], mx = Math.max(...Object.values(bySev), 1); return React.createElement("div", { key: s, style: { marginBottom: 6 } }, React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, marginBottom: 3 } }, React.createElement("span", null, (s === "Faible" ? "🟡" : s === "Moyen" ? "🟠" : "🔴") + " " + s), React.createElement("span", null, c)), React.createElement("div", { style: { height: 7, background: dark ? "#333" : "#F3F4F6", borderRadius: 4, overflow: "hidden" } }, React.createElement("div", { style: { height: "100%", width: (c / mx) * 100 + "%", background: SC[s].border, borderRadius: 4 } }))); })
-    ),
-    topD.length > 0 && React.createElement("div", { style: { background: cbg, borderRadius: 12, padding: 14, border: "1px solid " + (dark ? "#333" : "#E5E7EB") } },
-      React.createElement("h3", { style: { fontSize: 13, fontWeight: 700, margin: "0 0 10px" } }, "Top maladies"),
-      topD.map(([n, c], i) => React.createElement("div", { key: n, style: { display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: i < topD.length - 1 ? "1px solid " + (dark ? "#333" : "#F3F4F6") : "none" } }, React.createElement("span", { style: { fontSize: 12, color: ctxt } }, (i + 1) + ". " + n), React.createElement("span", { style: { background: "#FEF3C7", color: "#92400E", fontSize: 10, fontWeight: 700, padding: "1px 8px", borderRadius: 8 } }, c)))
-    )
+  return React.createElement("div",null,
+    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 12px"}},"📊 Statistiques"),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:14}},
+      [{l:"Total",v:records.length,i:"📊",c:"#16A34A",b:dark?"#0D2818":"#F0FDF4"},{l:"Actifs",v:active.length,i:"⚠️",c:"#CA8A04",b:dark?"#2A2000":"#FEF9C3"},{l:"Résolus",v:resolved.length,i:"✅",c:"#2563EB",b:dark?"#001A2A":"#DBEAFE"},{l:"Résolution",v:records.length?Math.round(resolved.length/records.length*100)+"%":"—",i:"📈",c:"#7C3AED",b:dark?"#1A0028":"#F3E8FF"}].map((c,i)=>
+        React.createElement("div",{key:i,style:{background:c.b,borderRadius:12,padding:12,textAlign:"center"}},React.createElement("div",{style:{fontSize:18}},c.i),React.createElement("div",{style:{fontSize:22,fontWeight:800,color:c.c}},c.v),React.createElement("div",{style:{fontSize:10,fontWeight:600,color:c.c}},c.l)))),
+    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:13,fontWeight:700,margin:"0 0 10px"}},"Par gravité"),
+      ["Grave","Moyen","Faible"].map(s=>{const c=bySev[s],mx=Math.max(...Object.values(bySev),1);return React.createElement("div",{key:s,style:{marginBottom:6}},React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:11,fontWeight:600,marginBottom:3}},React.createElement("span",null,(s==="Faible"?"🟡":s==="Moyen"?"🟠":"🔴")+" "+s),React.createElement("span",null,c)),React.createElement("div",{style:{height:7,background:dark?"#333":"#F3F4F6",borderRadius:4,overflow:"hidden"}},React.createElement("div",{style:{height:"100%",width:(c/mx)*100+"%",background:SC[s].border,borderRadius:4}})))})),
+    topD.length>0&&React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:13,fontWeight:700,margin:"0 0 10px"}},"Top maladies"),
+      topD.map(([n,c],i)=>React.createElement("div",{key:n,style:{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:i<topD.length-1?"1px solid "+(dark?"#333":"#F3F4F6"):"none"}},React.createElement("span",{style:{fontSize:12}},i+1+". "+n),React.createElement("span",{style:{background:"#FEF3C7",color:"#92400E",fontSize:10,fontWeight:700,padding:"1px 8px",borderRadius:8}},c))))
   );
 }
 
 // ===== SETTINGS =====
-function SettingsPage({ ghCfg, setGhCfg, sync, restore, syncSt, records, setRecords, t, dark, cbg, ctxt, stxt, bdr }) {
-  const is = { width: "100%", padding: "11px 12px", borderRadius: 10, border: "2px solid " + bdr, fontSize: 13, outline: "none", background: cbg, color: ctxt };
-  const exportD = () => { const b = new Blob([JSON.stringify({ records, at: new Date().toISOString(), v: V }, null, 2)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "agro-berry-" + new Date().toISOString().split("T")[0] + ".json"; a.click(); t("Exporté ✓"); };
-  const importD = (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if (d.records) { setRecords(d.records); t("Importé ✓"); } else t("Format invalide", "err"); } catch { t("Erreur", "err"); } }; r.readAsText(f); };
+function Settings({bg,cbg,ctx,stx,bd,dark,ghCfg,setGhCfg,sync,restore,syncSt,records,setRecords,t}){
+  const is={width:"100%",padding:"11px 12px",borderRadius:10,border:"2px solid "+bd,fontSize:13,outline:"none",background:cbg,color:ctx};
+  const exp=()=>{const b=new Blob([JSON.stringify({records,at:new Date().toISOString(),v:VER},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="agro-berry-"+new Date().toISOString().split("T")[0]+".json";a.click();t("Exporté ✓")};
+  const imp=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.records){setRecords(d.records);t("Importé ✓")}else t("Format invalide","err")}catch{t("Erreur","err")}};r.readAsText(f)};
 
-  return React.createElement("div", null,
-    React.createElement("h2", { style: { fontSize: 16, fontWeight: 800, margin: "0 0 14px" } }, "⚙️ Paramètres"),
-    React.createElement("div", { style: { background: cbg, borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid " + bdr } },
-      React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, margin: "0 0 10px" } }, "🐙 GitHub"),
-      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8 } },
-        React.createElement("input", { value: ghCfg.owner, onChange: e => setGhCfg(p => ({ ...p, owner: e.target.value })), placeholder: "Username GitHub", style: is }),
-        React.createElement("input", { value: ghCfg.repo, onChange: e => setGhCfg(p => ({ ...p, repo: e.target.value })), placeholder: "Nom du repo", style: is }),
-        React.createElement("input", { type: "password", value: ghCfg.token, onChange: e => setGhCfg(p => ({ ...p, token: e.target.value })), placeholder: "Token ghp_...", style: is }),
-        React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } },
-          React.createElement("button", { onClick: sync, disabled: syncSt === "s", style: { padding: 11, borderRadius: 10, border: "none", background: syncSt === "s" ? "#9CA3AF" : "#2D6A4F", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, syncSt === "s" ? "⏳..." : "☁️ Sauvegarder"),
-          React.createElement("button", { onClick: restore, disabled: syncSt === "s", style: { padding: 11, borderRadius: 10, border: "none", background: syncSt === "s" ? "#9CA3AF" : "#7C3AED", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, syncSt === "s" ? "⏳..." : "📥 Restaurer")
-        )
-      )
-    ),
-    React.createElement("div", { style: { background: cbg, borderRadius: 12, padding: 14, marginBottom: 10, border: "1px solid " + bdr } },
-      React.createElement("h3", { style: { fontSize: 14, fontWeight: 700, margin: "0 0 10px" } }, "💾 Export / Import"),
-      React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 } },
-        React.createElement("button", { onClick: exportD, style: { padding: 11, borderRadius: 10, border: "1px solid " + bdr, background: cbg, color: ctxt, fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "📤 Exporter"),
-        React.createElement("label", { style: { padding: 11, borderRadius: 10, border: "1px solid " + bdr, background: cbg, color: ctxt, fontSize: 12, fontWeight: 600, cursor: "pointer", textAlign: "center" } }, "📥 Importer", React.createElement("input", { type: "file", accept: ".json", onChange: importD, style: { display: "none" } }))
-      )
-    ),
-    React.createElement("div", { style: { background: dark ? "#2A0000" : "#FEF2F2", borderRadius: 12, padding: 14, border: "1px solid " + (dark ? "#5C0000" : "#FECACA") } },
-      React.createElement("button", { onClick: () => { if (confirm("SUPPRIMER TOUTES les données ?")) { setRecords([]); t("Supprimé"); } }, style: { width: "100%", padding: 11, borderRadius: 10, border: "1px solid #DC2626", background: "transparent", color: "#DC2626", fontSize: 12, fontWeight: 600, cursor: "pointer" } }, "🗑️ Tout supprimer")
-    ),
-    React.createElement("p", { style: { textAlign: "center", fontSize: 10, color: stxt, marginTop: 14 } }, "Agro Berry — Traitement Phytosanitaire v" + V)
-  );
+  return React.createElement("div",null,
+    React.createElement("h2",{style:{fontSize:16,fontWeight:800,margin:"0 0 14px"}},"⚙️ Paramètres"),
+    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:14,fontWeight:700,margin:"0 0 10px"}},"🐙 GitHub"),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+        React.createElement("input",{value:ghCfg.owner,onChange:e=>setGhCfg(p=>({...p,owner:e.target.value})),placeholder:"Username GitHub",style:is}),
+        React.createElement("input",{value:ghCfg.repo,onChange:e=>setGhCfg(p=>({...p,repo:e.target.value})),placeholder:"Nom du repo",style:is}),
+        React.createElement("input",{type:"password",value:ghCfg.token,onChange:e=>setGhCfg(p=>({...p,token:e.target.value})),placeholder:"Token ghp_...",style:is}),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}},
+          React.createElement("button",{onClick:sync,disabled:syncSt==="s",style:{padding:11,borderRadius:10,border:"none",background:syncSt==="s"?"#9CA3AF":"#2D6A4F",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}},syncSt==="s"?"⏳...":"☁️ Sauvegarder"),
+          React.createElement("button",{onClick:restore,disabled:syncSt==="s",style:{padding:11,borderRadius:10,border:"none",background:syncSt==="s"?"#9CA3AF":"#7C3AED",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}},syncSt==="s"?"⏳...":"📥 Restaurer")))),
+    React.createElement("div",{style:{background:cbg,borderRadius:12,padding:14,marginBottom:10,border:"1px solid "+bd}},
+      React.createElement("h3",{style:{fontSize:14,fontWeight:700,margin:"0 0 10px"}},"💾 Export / Import"),
+      React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}},
+        React.createElement("button",{onClick:exp,style:{padding:11,borderRadius:10,border:"1px solid "+bd,background:cbg,color:ctx,fontSize:12,fontWeight:600,cursor:"pointer"}},"📤 Exporter"),
+        React.createElement("label",{style:{padding:11,borderRadius:10,border:"1px solid "+bd,background:cbg,color:ctx,fontSize:12,fontWeight:600,cursor:"pointer",textAlign:"center"}},"📥 Importer",React.createElement("input",{type:"file",accept:".json",onChange:imp,style:{display:"none"}})))),
+    React.createElement("div",{style:{background:dark?"#2A0000":"#FEF2F2",borderRadius:12,padding:14,border:"1px solid "+(dark?"#5C0000":"#FECACA")}},
+      React.createElement("button",{onClick:()=>{if(confirm("SUPPRIMER TOUT ?"))setRecords([])},style:{width:"100%",padding:11,borderRadius:10,border:"1px solid #DC2626",background:"transparent",color:"#DC2626",fontSize:12,fontWeight:600,cursor:"pointer"}},"🗑️ Tout supprimer")),
+    React.createElement("p",{style:{textAlign:"center",fontSize:10,color:stx,marginTop:14}},"Agro Berry — Traitement Phytosanitaire v"+VER));
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById("root"));
+ReactDOM.render(React.createElement(App),document.getElementById("root"));
 </script>
 </body>
 </html>
