@@ -1,5 +1,21 @@
 {
-  "records": [],
+  "records": [
+    {
+      "sk": "AG1",
+      "pid": "V16",
+      "dis": "Botrytis (Pourriture grise)",
+      "sev": "Moyen",
+      "prod": "Soufre",
+      "dose": "5k/ha",
+      "tdate": "2026-02-24",
+      "obs": "",
+      "res": true,
+      "id": "mm0ifzx6v4gcth40x5",
+      "by": "user",
+      "at": "2026-02-24T11:16:40.986Z",
+      "resAt": "2026-02-24T11:17:17.364Z"
+    }
+  ],
   "notes": [],
-  "at": "2026-02-24T09:31:45.838Z"
+  "at": "2026-02-24T11:20:31.937Z"
 }
