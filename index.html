@@ -107,7 +107,7 @@ function ObsCard({r,treatments,sec,dark,cbg,ctx,stx,bd,onTog,onDel,showSection,c
       lt.map(t=>{const da=t.darEnd&&new Date(t.darEnd)>new Date();return React.createElement("div",{key:t.id,style:{fontSize:11,color:stx,padding:"3px 0",display:"flex",justifyContent:"space-between"}},React.createElement("span",null,t.prod+" — "+t.dose+" ("+fD(t.tdate)+")"),da&&React.createElement("span",{style:{color:"#EA580C",fontWeight:700,fontSize:10}},"⏳ DAR "+Math.ceil((new Date(t.darEnd)-new Date())/864e5)+"j"))})),
     (onTog||onDel)&&React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},
       onTog&&React.createElement("button",{onClick:()=>onTog(r.id),style:{flex:1,padding:7,borderRadius:8,border:"1px solid "+bd,background:r.res?"#FEF3C7":"#DCFCE7",fontSize:10,fontWeight:600,cursor:"pointer",color:r.res?"#92400E":"#166534"}},r.res?"↩️ Réactiver":"✅ Résolu"),
-      onDel&&React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDel(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")));
+      onDel&&React.createElement("button",{onClick:()=>{onDel(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")));
 }
 
 function App(){
@@ -204,7 +204,7 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
         grave.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>openP(r,"surv"),style:{padding:10,marginBottom:6,background:cbg,borderRadius:12,cursor:"pointer",border:"1px solid "+bd}},
           React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},React.createElement("span",{style:{fontWeight:700,fontSize:12,color:sec?.color}},sec?.name+" — "+r.pid),tag("#FECACA","#991B1B","Grave")),
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:e=>{e.stopPropagation();if(confirm("Supprimer ?"))delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",padding:2,opacity:0.6}},"🗑️"))),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:e=>{e.stopPropagation();delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",padding:2,opacity:0.6}},"🗑️"))),
           React.createElement("div",{style:{fontSize:13,fontWeight:600}},r.dis),
           r.zone&&React.createElement("span",{style:{fontSize:10,color:stx}}," • "+r.zone+"% touché"),
           r.obsText&&React.createElement("div",{style:{fontSize:11,color:stx,marginTop:3,fontStyle:"italic"}},r.obsText),
@@ -214,7 +214,7 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#EA580C",marginBottom:8}},"⚠️ "+untreated.length+" en attente de traitement"),
         untreated.slice(0,5).map(r=>{const sec=SECTIONS[r.sk];return React.createElement("div",{key:r.id,onClick:()=>openP(r,"trt"),style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",marginBottom:4,background:cbg,borderRadius:10,cursor:"pointer",border:"1px solid "+bd}},
           React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),React.createElement("span",{style:{fontSize:11,marginLeft:6}},r.dis)),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},tag((SC[r.sev]||{}).bg,(SC[r.sev]||{}).text,r.sev),React.createElement("button",{onClick:e=>{e.stopPropagation();if(confirm("Supprimer ?"))delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️")))})),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},tag((SC[r.sev]||{}).bg,(SC[r.sev]||{}).text,r.sev),React.createElement("button",{onClick:e=>{e.stopPropagation();delObs(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️")))})),
 
       secSummary.filter(s=>s.total>0).length>0&&React.createElement("div",{style:{marginBottom:14}},
         React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},"📊 Par section"),
@@ -234,7 +234,7 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
         React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#7C3AED",marginBottom:8}},"⏳ "+pendingDAR.length+" DAR actif"+(pendingDAR.length>1?"s":"")),
         pendingDAR.map(t=>{const sec=SECTIONS[t.sk];const dj=Math.ceil((new Date(t.darEnd)-new Date())/864e5);return React.createElement("div",{key:t.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",marginBottom:4,background:cbg,borderRadius:10,border:"1px solid "+bd}},
           React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+t.pid),React.createElement("span",{style:{fontSize:11,color:stx,marginLeft:6}},t.prod)),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"blink",style:{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},dj+"j"),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))delTrt(t.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️")))})),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{className:"blink",style:{padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},dj+"j"),React.createElement("button",{onClick:()=>{delTrt(t.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️")))})),
 
       React.createElement("h3",{style:{fontSize:14,fontWeight:700,marginBottom:8}},todayTrt.length>0?"💊 Aujourd'hui ("+todayTrt.length+")":"💊 Cette semaine"+(recentTrt.length?" ("+recentTrt.length+")":"")),
       recentTrtList.length===0?
@@ -244,7 +244,7 @@ function Dashboard({bg,cbg,ctx,stx,bd,dark,observations,treatments,onOpenParcel,
           return React.createElement("div",{key:r.id,style:{background:cbg,border:"1px solid "+bd,borderLeft:"4px solid "+(da?"#F97316":"#8B5CF6"),borderRadius:16,padding:14,marginBottom:2}},
             React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}},
               React.createElement("div",null,React.createElement("span",{style:{fontWeight:700,fontSize:11,color:sec?.color}},sec?.name+" — "+r.pid),da&&React.createElement("span",{className:"blink",style:{marginLeft:6,padding:"3px 10px",borderRadius:20,fontSize:10,fontWeight:700,background:"#FFF7ED",color:"#C2410C"}},"⏳ "+dd+"j")),
-              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))delTrt(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️"))),
+              React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4}},React.createElement("span",{style:{fontSize:9,color:stx}},timeAgo(r.at)),React.createElement("button",{onClick:()=>{delTrt(r.id)},style:{background:"none",border:"none",fontSize:12,cursor:"pointer",opacity:0.6}},"🗑️"))),
             React.createElement("div",{style:{fontSize:14,fontWeight:700,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),
             React.createElement("div",{style:{fontSize:12,color:stx}},"📏 "+r.dose+" • 📅 "+fD(r.tdate)),
             r.dar&&React.createElement("div",{style:{fontSize:11,color:"#EA580C",marginTop:2}},"⏳ DAR "+r.dar+"j → fin "+fD(r.darEnd)),
@@ -355,7 +355,7 @@ function ParcelModal({sec,sk,par,mode,observations,allObs,treatments,onClose,onA
               React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:4}},React.createElement("span",{style:{fontWeight:700,fontSize:14,color:dark?"#C4B5FD":"#6D28D9"}},r.prod),da&&React.createElement("span",{className:"blink",style:{fontSize:9,fontWeight:700,padding:"2px 8px",borderRadius:6,background:"#FFF7ED",color:"#C2410C",border:"1px solid #FB923C"}},"⏳ DAR: "+dd+"j")),
               React.createElement("div",{style:{fontSize:12,color:stx}},React.createElement("div",null,"📏 "+r.dose),React.createElement("div",null,"📅 "+fD(r.tdate)+" à "+fH(r.at)),r.dar&&React.createElement("div",null,"⏳ DAR: "+r.dar+"j"+(r.darEnd?" → fin "+fD(r.darEnd):"")),r.notes&&React.createElement("div",{style:{fontStyle:"italic",marginTop:2}},"📝 "+r.notes)),
               lo&&React.createElement("div",{style:{marginTop:6,padding:"6px 8px",background:dark?"#2A2000":"#FEF9C3",borderRadius:8,border:"1px solid "+(dark?"#5C4A00":"#FDE047")}},React.createElement("span",{style:{fontSize:10,fontWeight:600,color:"#92400E"}},"🔗 "+lo.dis+" ("+lo.sev+")"+(lo.zone?" • "+lo.zone+"%":""))),
-              React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},React.createElement("button",{onClick:()=>{if(confirm("Supprimer ?"))onDelTrt(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")))}))),
+              React.createElement("div",{style:{display:"flex",gap:6,marginTop:8}},React.createElement("button",{onClick:()=>{onDelTrt(r.id)},style:{padding:"7px 10px",borderRadius:8,border:"1px solid #FECACA",background:"#FEF2F2",fontSize:10,fontWeight:600,cursor:"pointer",color:"#DC2626"}},"🗑️")))}))),
         // TRT ADD
         mode==="trt"&&tab==="add"&&React.createElement(AddTrtForm,{sk,pid:par.id,activeObs,onSubmit:onAddTrt,dark,cbg,ctx,stx,bd}),
         // HISTORY TAB
