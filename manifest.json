@@ -4,8 +4,8 @@
   "description": "Application de traitement phytosanitaire - Ferme Zaouia",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F8FAF5",
-  "theme_color": "#1B4332",
+  "background_color": "#0C4A6E",
+  "theme_color": "#0C4A6E",
   "orientation": "portrait",
   "icons": [
     {
