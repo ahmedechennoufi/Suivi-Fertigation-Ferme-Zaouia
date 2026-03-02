@@ -8,34 +8,6 @@
       "dar": "",
       "darEnd": "",
       "notes": "  .",
-      "id": "mm8zkl2n5mh7abs7ev4",
-      "sk": "S2",
-      "pid": "V10",
-      "obsId": null,
-      "by": "user",
-      "at": "2026-03-02T09:38:17.903Z"
-    },
-    {
-      "prod": "Soufre",
-      "dose": "15 kg",
-      "tdate": "2026-03-02",
-      "dar": "",
-      "darEnd": "",
-      "notes": "  .",
-      "id": "mm8zkl2nzvqy800yogf",
-      "sk": "S2",
-      "pid": "V11",
-      "obsId": null,
-      "by": "user",
-      "at": "2026-03-02T09:38:17.903Z"
-    },
-    {
-      "prod": "Soufre",
-      "dose": "15 kg",
-      "tdate": "2026-03-02",
-      "dar": "",
-      "darEnd": "",
-      "notes": "  .",
       "id": "mm8zkl2nnpug3q3vyz",
       "sk": "S2",
       "pid": "V12",
@@ -128,6 +100,6 @@
       "at": "2026-03-02T09:38:17.903Z"
     }
   ],
-  "at": "2026-03-02T09:38:19.410Z",
+  "at": "2026-03-02T09:38:40.163Z",
   "v": "4.0.0"
 }
