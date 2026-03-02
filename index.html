@@ -205,7 +205,9 @@ function App(){
   const delObs=id=>{setObs(p=>p.filter(r=>r.id!==id));t("Supprimé")};
   const togObs=id=>{setObs(p=>p.map(r=>r.id===id?{...r,res:!r.res,resAt:!r.res?new Date().toISOString():null}:r))};
   const addTrt=r=>{setTrt(p=>[{...r,id:gid(),by:"user",at:new Date().toISOString()},...p]);t("Traitement ✓")};
+  const addBulkTrt=r=>{const now=new Date().toISOString();const newTrts=[];r.targets.forEach(({sk,pid})=>{newTrts.push({...r.data,id:gid(),sk,pid,obsId:null,by:"user",at:now})});setTrt(p=>[...newTrts,...p]);t(newTrts.length+" traitements enregistrés ✓")};
   const delTrt=id=>{setTrt(p=>p.filter(r=>r.id!==id));t("Supprimé")};
+  const[showTrtForm,setShowTrtForm]=useState(null);
   const openModal=(sk,p,mode)=>{setSelS(sk);setSelP(p);setModalMode(mode)};
   const bg=dark?"#0C1222":"#F0F9FF",cbg=dark?"#1E293B":"#fff",ctx=dark?"#E2E8F0":"#1E293B",stx=dark?"#94A3B8":"#64748B",bd=dark?"#334155":"#E2E8F0";
   const th={bg,cbg,ctx,stx,bd,dark};
@@ -224,6 +226,7 @@ function App(){
         ghCfg.token&&!syncSt&&React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"#10B981",display:"inline-block"}}),
         React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.12)",border:"none",color:"#fff",padding:10,borderRadius:12,fontSize:18,cursor:"pointer",width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"auto"}},dark?"☀️":"🌙"))),
     React.createElement("main",{style:{padding:"12px 14px",maxWidth:800,margin:"0 auto"}},
+      (page==="dash"||page==="hls"||page==="sol"||page==="fraise")&&React.createElement("button",{onClick:()=>setShowTrtForm(page==="hls"?"hls":page==="sol"?"sol":page==="fraise"?"fraise":"all"),style:{position:"fixed",bottom:90,right:16,width:60,height:60,borderRadius:18,border:"none",background:"linear-gradient(135deg,#8B5CF6,#7C3AED)",color:"#fff",fontSize:26,cursor:"pointer",zIndex:90,boxShadow:"0 6px 24px rgba(139,92,246,0.4)",display:"flex",alignItems:"center",justifyContent:"center",minHeight:"auto"}},"💊"),
       page==="dash"&&React.createElement(Dashboard,{...th,observations,treatments,onOpenParcel:openModal,delObs,delTrt,togObs}),
       page==="hls"&&React.createElement(SurvMap,{...th,observations,treatments,getPS:getObsPS,getAC:getObsAC,onSelect:(sk,p)=>openModal(sk,p,"surv"),search,setSearch,filter:"hls",setFilter:()=>{},fixedFilter:"hls"}),
       page==="sol"&&React.createElement(SurvMap,{...th,observations,treatments,getPS:getObsPS,getAC:getObsAC,onSelect:(sk,p)=>openModal(sk,p,"surv"),search,setSearch,filter:"sol",setFilter:()=>{},fixedFilter:"sol"}),
@@ -235,7 +238,8 @@ function App(){
         React.createElement("button",{key:tab.k,onClick:()=>setPage(tab.k),style:{background:"transparent",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"6px 4px",cursor:"pointer",borderRadius:10,color:page===tab.k?tab.ac:stx,fontWeight:page===tab.k?700:500,position:"relative",minHeight:"auto",minWidth:48}},
           page===tab.k&&React.createElement("div",{style:{position:"absolute",top:-8,width:28,height:3,borderRadius:2,background:tab.ac}}),
           React.createElement("span",{style:{fontSize:20}},tab.i),React.createElement("span",{style:{fontSize:9,letterSpacing:"-0.2px"}},tab.l)))),
-    selP&&selS&&React.createElement(ParcelModal,{...th,sec:SECTIONS[selS],sk:selS,par:selP,mode:modalMode,observations:getObsP(selS,selP.id),allObs:observations,treatments:getTrtP(selS,selP.id),onClose:()=>{setSelP(null);setSelS(null)},onAddObs:addObs,onDelObs:delObs,onTogObs:togObs,onAddTrt:addTrt,onDelTrt:delTrt,setMode:setModalMode}));
+    selP&&selS&&React.createElement(ParcelModal,{...th,sec:SECTIONS[selS],sk:selS,par:selP,mode:modalMode,observations:getObsP(selS,selP.id),allObs:observations,treatments:getTrtP(selS,selP.id),onClose:()=>{setSelP(null);setSelS(null)},onAddObs:addObs,onDelObs:delObs,onTogObs:togObs,onAddTrt:addTrt,onDelTrt:delTrt,setMode:setModalMode}),
+    showTrtForm&&React.createElement(QuickTrtForm,{...th,groupFilter:showTrtForm,onSubmit:r=>{addBulkTrt(r);setShowTrtForm(null)},onClose:()=>setShowTrtForm(null)}));
 }
 
 // ===== DASHBOARD =====
@@ -535,6 +539,85 @@ function AddTrtForm({sk,pid,activeObs,onSubmit,dark,cbg,ctx,stx,bd}){
     React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"⏳ DAR (jours)"),React.createElement("input",{type:"number",value:dar,onChange:e=>setDar(e.target.value),placeholder:"7, 14...",min:0,style:is}),darEnd&&React.createElement("div",{style:{marginTop:4,fontSize:11,color:"#EA580C",fontWeight:600}},"⚠️ Récolte dès "+fD(darEnd))),
     React.createElement("div",null,React.createElement("label",{style:{display:"block",fontSize:11,fontWeight:600,color:stx,marginBottom:4}},"📝 Notes"),React.createElement("textarea",{value:notes,onChange:e=>setNotes(e.target.value),placeholder:"Notes...",rows:2,style:{...is,resize:"vertical"}})),
     React.createElement("button",{onClick:go,style:{padding:13,borderRadius:14,border:"none",background:"linear-gradient(135deg,#8B5CF6,#7C3AED)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 16px rgba(139,92,246,0.3)"}},"✓ Enregistrer le traitement"));
+}
+
+// QUICK TREATMENT FORM (bulk, like irrigation)
+function QuickTrtForm({bg,cbg,ctx,stx,bd,dark,groupFilter,onSubmit,onClose}){
+  const types=[{k:"hls",l:"🫐 Hors Sol",c:"#3B82F6"},{k:"sol",l:"🌱 Sol",c:"#DC2626"},{k:"fraise",l:"🍓 Fraise",c:"#16A34A"}];
+  const[selType,setSelType]=useState(groupFilter!=="all"?groupFilter:"hls");
+  const[selSections,setSelSections]=useState([]);
+  const[prod,setProd]=useState("");const[dose,setDose]=useState("");
+  const[tdate,setTdate]=useState(new Date().toISOString().split("T")[0]);
+  const[dar,setDar]=useState("");const[notes,setNotes]=useState("");
+  const darEnd=dar&&tdate?new Date(new Date(tdate).getTime()+parseInt(dar)*864e5).toISOString().split("T")[0]:"";
+
+  const availSections=Object.entries(SECTIONS).filter(([k,s])=>s.type===selType);
+  const toggleSec=sk=>{setSelSections(p=>p.includes(sk)?p.filter(s=>s!==sk):[...p,sk])};
+  const selectAll=()=>{setSelSections(selSections.length===availSections.length?[]:availSections.map(([k])=>k))};
+  const diseases=selType==="fraise"?DIS_F:DIS_M;
+
+  // Count total parcelles
+  const totalParcelles=selSections.reduce((sum,sk)=>(SECTIONS[sk]?SECTIONS[sk].parcelles.length:0)+sum,0);
+
+  const submit=()=>{
+    if(!prod||!dose||selSections.length===0){alert("Produit, dose et au moins 1 section");return}
+    const targets=[];
+    selSections.forEach(sk=>{
+      const sec=SECTIONS[sk];
+      if(sec)sec.parcelles.forEach(p=>{targets.push({sk,pid:p.id})});
+    });
+    onSubmit({targets,data:{prod,dose,tdate,dar,darEnd,notes}});
+  };
+
+  const is={width:"100%",padding:"13px 14px",borderRadius:14,border:"2px solid "+bd,fontSize:15,outline:"none",background:cbg,color:ctx};
+  const lbl={fontSize:12,fontWeight:700,color:stx,marginBottom:5,display:"block"};
+
+  return React.createElement("div",{style:{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",justifyContent:"center"},onClick:onClose},
+    React.createElement("div",{style:{background:cbg,borderRadius:"24px 24px 0 0",padding:"18px 16px 36px",width:"100%",maxWidth:500,maxHeight:"92vh",overflow:"auto",WebkitOverflowScrolling:"touch",animation:"fadeIn 0.3s"},onClick:e=>e.stopPropagation()},
+
+      // Header
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}},
+        React.createElement("h2",{style:{fontSize:18,fontWeight:800}},"💊 Traitement rapide"),
+        React.createElement("button",{onClick:onClose,style:{background:dark?"#334155":"#F1F5F9",border:"none",width:40,height:40,borderRadius:12,fontSize:18,cursor:"pointer",color:ctx,minHeight:"auto"}},"✕")),
+
+      // Type selector (HLS / Sol / Fraise)
+      React.createElement("label",{style:lbl},"🏷️ Type"),
+      React.createElement("div",{style:{display:"flex",gap:8,marginBottom:14}},
+        types.map(tp=>React.createElement("button",{key:tp.k,onClick:()=>{setSelType(tp.k);setSelSections([])},style:{flex:1,padding:"12px 8px",borderRadius:14,border:"2px solid "+(selType===tp.k?tp.c:bd),background:selType===tp.k?(dark?tp.c+"22":tp.c+"12"):"transparent",color:selType===tp.k?tp.c:stx,fontWeight:selType===tp.k?700:500,fontSize:14,cursor:"pointer",minHeight:"auto"}},tp.l))),
+
+      // Section selector (AG1, AG2, etc.)
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+        React.createElement("label",{style:{...lbl,margin:0}},"📍 Sections"),
+        React.createElement("button",{onClick:selectAll,style:{fontSize:12,color:"#8B5CF6",background:"none",border:"none",cursor:"pointer",fontWeight:600,minHeight:"auto",padding:"6px 8px"}},selSections.length===availSections.length?"Désélectionner":"Tout sélectionner")),
+      React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:6}},
+        availSections.map(([sk,sec])=>{
+          const sel=selSections.includes(sk);
+          return React.createElement("button",{key:sk,onClick:()=>toggleSec(sk),style:{padding:"10px 14px",borderRadius:14,border:"2px solid "+(sel?sec.color:bd),background:sel?sec.color+"18":"transparent",color:sel?sec.color:stx,fontWeight:sel?700:500,fontSize:13,cursor:"pointer",minHeight:"auto"}},sec.name+" ("+sec.parcelles.length+"p)")})),
+      selSections.length>0&&React.createElement("div",{style:{fontSize:12,color:"#8B5CF6",fontWeight:600,marginBottom:14,padding:"6px 10px",background:dark?"#1A1028":"#EDE9FE",borderRadius:10}},"✓ "+selSections.length+" section"+(selSections.length>1?"s":"")+" • "+totalParcelles+" parcelles"),
+
+      // Date
+      React.createElement("label",{style:{...lbl,marginTop:8}},"📅 Date *"),
+      React.createElement("input",{type:"date",value:tdate,onChange:e=>setTdate(e.target.value),style:{...is,marginBottom:12}}),
+
+      // Product
+      React.createElement("label",{style:lbl},"💊 Produit *"),
+      React.createElement("input",{value:prod,onChange:e=>setProd(e.target.value),placeholder:"Soufre, Switch, Signum...",style:{...is,marginBottom:12}}),
+
+      // Dose
+      React.createElement("label",{style:lbl},"📏 Dose *"),
+      React.createElement("input",{value:dose,onChange:e=>setDose(e.target.value),placeholder:"5 kg/ha, 200 g/1000L...",style:{...is,marginBottom:12}}),
+
+      // DAR
+      React.createElement("label",{style:lbl},"⏳ DAR (jours)"),
+      React.createElement("input",{type:"number",value:dar,onChange:e=>setDar(e.target.value),placeholder:"7, 14...",min:0,style:{...is,marginBottom:darEnd?4:12}}),
+      darEnd&&React.createElement("div",{style:{marginBottom:12,fontSize:12,color:"#EA580C",fontWeight:600,padding:"6px 10px",background:dark?"#2A1500":"#FFF7ED",borderRadius:8}},"⚠️ Récolte autorisée dès "+fD(darEnd)),
+
+      // Notes
+      React.createElement("label",{style:lbl},"📝 Notes"),
+      React.createElement("textarea",{rows:2,value:notes,onChange:e=>setNotes(e.target.value),placeholder:"Notes optionnelles...",style:{...is,marginBottom:16,resize:"vertical"}}),
+
+      // Submit
+      React.createElement("button",{onClick:submit,style:{width:"100%",padding:16,borderRadius:16,border:"none",background:"linear-gradient(135deg,#8B5CF6,#7C3AED)",color:"#fff",fontWeight:700,fontSize:16,cursor:"pointer",boxShadow:"0 4px 16px rgba(139,92,246,0.3)",minHeight:"auto"}},totalParcelles>0?"✓ Traiter "+totalParcelles+" parcelles":"✓ Sélectionnez des sections")));
 }
 
 // HISTORY PAGE
