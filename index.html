@@ -146,16 +146,54 @@ function App(){
   const[page,setPage]=useState("dash");
   const[selP,setSelP]=useState(null);const[selS,setSelS]=useState(null);const[modalMode,setModalMode]=useState("surv");
   const[filter,setFilter]=useState("all");
-  const[ghCfg,setGhCfg]=useState(()=>ld("ghcfg",{token:"",repo:"",owner:""}));
+  const[ghCfg,setGhCfg]=useState(()=>ld("ghcfg",{token:"",repo:"Suivi-Fertigation-Ferme-Zaouia",owner:"ahmedechennoufi"}));
   const[syncSt,setSyncSt]=useState("");const[toast,setToast]=useState(null);
   const[dark,setDark]=useState(()=>ld("dark",false));const[search,setSearch]=useState("");
+  const[loaded,setLoaded]=useState(false);
+  const syncTimer=useRef(null);
+  const skipAutoSync=useRef(false);
+
+  // Auto-restore from GitHub on first load
+  useEffect(()=>{
+    if(!ghCfg.token){setLoaded(true);return}
+    setSyncSt("⏳");
+    ghRestore(ghCfg).then(d=>{
+      if(d){
+        skipAutoSync.current=true;
+        if(d.observations)setObs(d.observations);
+        if(d.treatments)setTrt(d.treatments);
+        if(d.observations)sv("observations",d.observations);
+        if(d.treatments)sv("treatments",d.treatments);
+        setSyncSt("✅");
+        setTimeout(()=>{setSyncSt("");skipAutoSync.current=false},1500);
+      }else{setSyncSt("")}
+      setLoaded(true);
+    }).catch(()=>{setSyncSt("⚠️");setLoaded(true);setTimeout(()=>setSyncSt(""),3000)});
+  },[]);
+
+  // Save to localStorage always
   useEffect(()=>{sv("observations",observations)},[observations]);
   useEffect(()=>{sv("treatments",treatments)},[treatments]);
   useEffect(()=>{sv("ghcfg",ghCfg)},[ghCfg]);
   useEffect(()=>{sv("dark",dark);document.body.classList.toggle("dark",dark)},[dark]);
+
+  // Auto-sync to GitHub (debounced 2s) on every data change
+  useEffect(()=>{
+    if(!loaded||skipAutoSync.current||!ghCfg.token)return;
+    if(syncTimer.current)clearTimeout(syncTimer.current);
+    syncTimer.current=setTimeout(()=>{
+      setSyncSt("⏳");
+      ghSync(ghCfg,{observations,treatments,at:new Date().toISOString(),v:VER}).then(r=>{
+        if(r.ok){setSyncSt("✅");setTimeout(()=>setSyncSt(""),2000)}
+        else{setSyncSt("⚠️");setTimeout(()=>setSyncSt(""),3000)}
+      }).catch(()=>{setSyncSt("⚠️");setTimeout(()=>setSyncSt(""),3000)});
+    },1500);
+    return()=>{if(syncTimer.current)clearTimeout(syncTimer.current)};
+  },[observations,treatments,loaded]);
+
   const t=(m,tp)=>{setToast({m,tp:tp||"ok"});setTimeout(()=>setToast(null),3000)};
-  const sync=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Config GitHub","err");return}setSyncSt("s");try{const r=await ghSync(ghCfg,{observations,treatments,at:new Date().toISOString(),v:VER});if(r.ok){setSyncSt("d");t("Synchronisé ✓")}else{setSyncSt("e");t("Erreur","err")}}catch(e){setSyncSt("e");t(e.message,"err")}setTimeout(()=>setSyncSt(""),3000)};
-  const restore=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Config GitHub","err");return}setSyncSt("s");try{const d=await ghRestore(ghCfg);if(d){if(d.observations)setObs(d.observations);if(d.treatments)setTrt(d.treatments);setSyncSt("d");t("Restauré ✓")}else{setSyncSt("e");t("Rien","err")}}catch(e){setSyncSt("e");t(e.message,"err")}setTimeout(()=>setSyncSt(""),3000)};
+  const sync=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Config GitHub","err");return}setSyncSt("⏳");try{const r=await ghSync(ghCfg,{observations,treatments,at:new Date().toISOString(),v:VER});if(r.ok){setSyncSt("✅");t("Synchronisé ✓");setTimeout(()=>setSyncSt(""),2000)}else{setSyncSt("⚠️");t("Erreur","err");setTimeout(()=>setSyncSt(""),3000)}}catch(e){setSyncSt("⚠️");t(e.message,"err");setTimeout(()=>setSyncSt(""),3000)}};
+  const restore=async()=>{if(!ghCfg.token||!ghCfg.repo||!ghCfg.owner){t("Config GitHub","err");return}setSyncSt("⏳");try{const d=await ghRestore(ghCfg);if(d){skipAutoSync.current=true;if(d.observations)setObs(d.observations);if(d.treatments)setTrt(d.treatments);setSyncSt("✅");t("Restauré ✓");setTimeout(()=>{setSyncSt("");skipAutoSync.current=false},2000)}else{setSyncSt("⚠️");t("Rien","err");setTimeout(()=>setSyncSt(""),3000)}}catch(e){setSyncSt("⚠️");t(e.message,"err");setTimeout(()=>setSyncSt(""),3000)}};
   const getObsP=(sk,pid)=>observations.filter(r=>r.sk===sk&&r.pid===pid);
   const getObsPS=(sk,pid)=>{const r=getObsP(sk,pid);if(!r.length)return"clean";const a=r.filter(x=>!x.res);if(a.some(x=>x.sev==="Grave"))return"grave";if(a.some(x=>x.sev==="Moyen"))return"moyen";if(a.some(x=>x.sev==="Faible"))return"faible";return"resolved"};
   const getObsAC=(sk,pid)=>getObsP(sk,pid).filter(r=>!r.res).length;
@@ -172,11 +210,19 @@ function App(){
   const bg=dark?"#0C1222":"#F0F9FF",cbg=dark?"#1E293B":"#fff",ctx=dark?"#E2E8F0":"#1E293B",stx=dark?"#94A3B8":"#64748B",bd=dark?"#334155":"#E2E8F0";
   const th={bg,cbg,ctx,stx,bd,dark};
 
+  if(!loaded)return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,#0C4A6E,#0369A1)"}},
+    React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🌿"),
+    React.createElement("div",{style:{color:"#fff",fontSize:18,fontWeight:700}},"Chargement..."),
+    React.createElement("div",{style:{color:"#7DD3FC",fontSize:13,marginTop:6}},"Synchronisation GitHub"));
+
   return React.createElement("div",{style:{minHeight:"100vh",background:bg,color:ctx,paddingBottom:82}},
     toast&&React.createElement("div",{style:{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",zIndex:9999,padding:"12px 24px",borderRadius:14,background:toast.tp==="err"?"#EF4444":"#0EA5E9",color:"#fff",fontWeight:600,fontSize:14,boxShadow:"0 12px 40px rgba(0,0,0,0.3)",animation:"slideDown 0.3s"}},toast.m),
     React.createElement("header",{style:{background:"linear-gradient(135deg,#0C4A6E,#0369A1)",padding:"16px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},React.createElement("div",{style:{width:38,height:38,borderRadius:12,background:"linear-gradient(135deg,#10B981,#059669)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}},"🌿"),React.createElement("div",null,React.createElement("h1",{style:{color:"#fff",fontSize:17,fontWeight:800,margin:0,letterSpacing:"-0.3px"}},"AGRO BERRY"),React.createElement("p",{style:{color:"#7DD3FC",fontSize:10,margin:0}},"Phytosanitaire • Ferme Zaouia"))),
-      React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.12)",border:"none",color:"#fff",padding:10,borderRadius:12,fontSize:18,cursor:"pointer",width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"auto"}},dark?"☀️":"🌙")),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        syncSt&&React.createElement("span",{style:{fontSize:16,animation:syncSt==="⏳"?"pulse 1.5s infinite":"none"}},syncSt),
+        ghCfg.token&&!syncSt&&React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"#10B981",display:"inline-block"}}),
+        React.createElement("button",{onClick:()=>setDark(!dark),style:{background:"rgba(255,255,255,0.12)",border:"none",color:"#fff",padding:10,borderRadius:12,fontSize:18,cursor:"pointer",width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"auto"}},dark?"☀️":"🌙"))),
     React.createElement("main",{style:{padding:"12px 14px",maxWidth:800,margin:"0 auto"}},
       page==="dash"&&React.createElement(Dashboard,{...th,observations,treatments,onOpenParcel:openModal,delObs,delTrt,togObs}),
       page==="hls"&&React.createElement(SurvMap,{...th,observations,treatments,getPS:getObsPS,getAC:getObsAC,onSelect:(sk,p)=>openModal(sk,p,"surv"),search,setSearch,filter:"hls",setFilter:()=>{},fixedFilter:"hls"}),
