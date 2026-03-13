@@ -1,6 +1,63 @@
 {
   "observations": [],
-  "treatments": [],
-  "at": "2026-03-02T09:47:01.917Z",
+  "treatments": [
+    {
+      "prod": "Botrefen",
+      "dose": "4 gk",
+      "tdate": "2026-03-13",
+      "dar": "",
+      "darEnd": "",
+      "notes": "",
+      "id": "mmotpw725mnbt70xe5c",
+      "sk": "AG3b",
+      "pid": "V10",
+      "obsId": null,
+      "by": "user",
+      "at": "2026-03-13T11:38:46.717Z"
+    },
+    {
+      "prod": "Botrefen",
+      "dose": "4 gk",
+      "tdate": "2026-03-13",
+      "dar": "",
+      "darEnd": "",
+      "notes": "",
+      "id": "mmotpw72096ti1vaos3l",
+      "sk": "AG3b",
+      "pid": "V11",
+      "obsId": null,
+      "by": "user",
+      "at": "2026-03-13T11:38:46.717Z"
+    },
+    {
+      "prod": "Botrefen",
+      "dose": "4 gk",
+      "tdate": "2026-03-13",
+      "dar": "",
+      "darEnd": "",
+      "notes": "",
+      "id": "mmotpw72juqv7z2hpm",
+      "sk": "AG3b",
+      "pid": "V16",
+      "obsId": null,
+      "by": "user",
+      "at": "2026-03-13T11:38:46.717Z"
+    },
+    {
+      "prod": "Botrefen",
+      "dose": "4 gk",
+      "tdate": "2026-03-13",
+      "dar": "",
+      "darEnd": "",
+      "notes": "",
+      "id": "mmotpw72giyhve0v31p",
+      "sk": "AG3b",
+      "pid": "V17",
+      "obsId": null,
+      "by": "user",
+      "at": "2026-03-13T11:38:46.717Z"
+    }
+  ],
+  "at": "2026-03-13T11:38:48.229Z",
   "v": "4.0.0"
 }
